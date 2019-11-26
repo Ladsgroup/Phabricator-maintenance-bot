@@ -1,5 +1,6 @@
 import json
 import time
+import sys
 
 import requests
 
@@ -18,7 +19,7 @@ class Client(object):
 
     @classmethod
     def newFromCreds(cls):
-        with open('creds.json', 'r') as f:
+        with open(sys.argv[1], 'r') as f:
             creds = json.loads(f.read())
         return cls(*creds)
 
@@ -103,7 +104,7 @@ class Client(object):
             'limit': 100,
             'constraints': {
                 'projects': [project_phid],
-                "modifiedStart": int(time.time() - 3600)
+                "modifiedStart": int(time.time() - int(sys.argv[2]))
             }
         }
         if continue_:
