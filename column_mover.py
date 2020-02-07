@@ -58,6 +58,10 @@ work = [{'from': ['incoming'],
          'project': 'user-dannys712',
          'to': 'Abuse Filter',
          'projects': ['abusefilter']},
+        {'from': ['Unsorted'],
+         'project': 'user-dannys712',
+         'to': 'Page Curation',
+         'projects': ['pagecuration']},
         ]
 for case in work:
     gen = client.getTasksWithProject(client.lookupPhid('#' + case['project']))
