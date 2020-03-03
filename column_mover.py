@@ -62,6 +62,15 @@ work = [{'from': ['incoming'],
          'project': 'user-dannys712',
          'to': 'Page Curation',
          'projects': ['pagecuration']},
+        {'from': ['Incoming',
+                  'Miraheze Phab Reported Issues',
+                  'Watching (Other)',
+                  'Miraheze-Related Issues (not reported there)',
+                  'From WMF (or reproduced on)',
+                  'Deployment'],
+         'project': 'User-RhinosF1',
+         'to': 'Done',
+         'status': ['Resolved']},
         ]
 for case in work:
     gen = client.getTasksWithProject(client.lookupPhid('#' + case['project']))
