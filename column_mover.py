@@ -63,6 +63,10 @@ work = [{'from': ['incoming'],
          'to': 'Page Curation',
          'projects': ['pagecuration']},
         ]
+        {'project': 'User-RhinosF1',
+         'to': 'Done',
+         'status': ['Resolved']},
+        ]
 for case in work:
     gen = client.getTasksWithProject(client.lookupPhid('#' + case['project']))
     checker = Checker(case, client)
