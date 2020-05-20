@@ -219,6 +219,26 @@ def main():
 
     print(' [] Import from Incubator')
     print(' [] Clean up old interwiki links')
+    print('\n-------')
+    print('**Step by step commands**:')
+    if parts[1] == 'wiktionary':
+        dummy_wiki = 'aawiktionary'
+    else:
+        dummy_wiki = 'aawiki'
+    print('On mwmaint1002:')
+    print('`mwscript extensions/WikimediaMaintenance/addWiki.php --wiki={dummy} {lang} {family} {db} {url}`'.format(
+        dummy=dummy_wiki, lang=language_code, family=parts[1], db=db_name, url='.'.join(parts)
+    ))
+    summary = 'Creating {db_name} ({phab})'.format(db_name=db_name, phab=sys.argv[2])
+    print('On deploy1001:')
+    print('`scap sync-file dblists "{}"`'.format(summary))
+    print('`scap sync-wikiversions "{}"`'.format(summary))
+    if parts[1] == 'wikimedia':
+        print('`scap sync-file multiversion/MWMultiVersion.php "{}"`'.format(summary))
+    print('`scap sync-file wmf-config/InitialiseSettings.php "{}"`'.format(summary))
+    print('`scap sync-file static/images/project-logos/ "{}"`'.format(summary))
+    print('`scap sync-file langlist "{}"`'.format(summary))
+    print('`scap update-interwiki-cache`')
 
 
 main()
