@@ -1,3 +1,4 @@
 15 * * * * jsub -once -N column_mover python3 /data/project/phabbot/phabbot/column_mover.py /data/project/phabbot/phabbot/creds.json 3600 >/dev/null 2>&1
 10 * * * * jsub -once -N patch_for_review python3 /data/project/phabbot/phabbot/patchforreview_remover.py /data/project/phabbot/phabbot/creds.json 3600 >/dev/null 2>&1
 5 * * * * jlocal bash /data/project/phabbot/phabbot/updater.sh >/dev/null 2>&1
+10 22 * * * jsub -once -N new_wikis_handler python3 /data/project/phabbot/phabbot/new_wikis_handler.py /data/project/phabbot/phabbot/creds.json 10000000 >/dev/null 2>&1

@@ -62,6 +62,15 @@ class Client(object):
             }]
         })
 
+    def setTaskDescription(self, task_phid, new_desc):
+        self.post('maniphest.edit', {
+            'objectIdentifier': task_phid,
+            'transactions': [{
+                'type': 'description',
+                'value': new_desc,
+            }]
+        })
+
     def taskDetails(self, phid):
         """Lookup details of a Maniphest task."""
         r = self.post('maniphest.query', {'phids': [phid]})
@@ -87,8 +96,8 @@ class Client(object):
             }]
         })
 
-    def getTasksWithProject(self, project_phid, continue_=None):
-        r = self._getTasksWithProjectContinue(project_phid, continue_)
+    def getTasksWithProject(self, project_phid, continue_=None, statuses=None):
+        r = self._getTasksWithProjectContinue(project_phid, continue_, statuses=statuses)
         cursor = r['cursor']
         for case in r['data']:
             if case['type'] != 'TASK':
@@ -99,7 +108,7 @@ class Client(object):
                     project_phid, cursor['after']):
                 yield case
 
-    def _getTasksWithProjectContinue(self, project_phid, continue_=None):
+    def _getTasksWithProjectContinue(self, project_phid, continue_=None, statuses=None):
         params = {
             'limit': 100,
             'constraints': {
@@ -109,6 +118,8 @@ class Client(object):
         }
         if continue_:
             params['after'] = continue_
+        if statuses:
+            params['constraints']['statuses'] = statuses
         return self.post('maniphest.search', params)
 
     def getTaskColumns(self, phid):
