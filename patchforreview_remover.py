@@ -39,7 +39,7 @@ class Checker():
                 return False
             raw_comment = case['comments'][0]['content']['raw']
             gerrit_patch_id = re.findall(
-                r'https\:\/\/gerrit\.wikimedia\.org\/r\/(\d+)', raw_comment)[0]
+                r'https://gerrit(?:-test|)\.wikimedia\.org/r/.*(\d+)(?:$|\]\])', raw_comment)[0]
             merged = re.findall(
                 r'Change \d+ (?:\*\*merged\*\*|abandoned) by ',
                 raw_comment)
