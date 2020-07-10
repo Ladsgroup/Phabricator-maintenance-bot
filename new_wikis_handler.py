@@ -1,6 +1,7 @@
 import base64
 import json
 import re
+import socket
 
 import requests
 
@@ -22,18 +23,12 @@ def get_file_from_gerrit(path):
     return base64.b64decode(requests.get(url).text).decode('utf-8')
 
 
-def handle_non_special_wikis(parts, language_code):
-    if language_code != parts[0]:
-        return
-    dns_file = get_file_from_gerrit('operations/dns/+/master/templates/helpers/langlist.tmpl')
-    return f"'{language_code}'" in dns_file
-
-
-def handle_special_wiki_dns(parts):
-    dns_file = get_file_from_gerrit('operations/dns/+/master/templates/wikimedia.org')
-    name = parts[0]
-    return f"\n{name}" in dns_file
-
+def hostname_resolves(hostname):
+    try:
+        socket.gethostbyname(hostname)
+    except socket.error:
+        return False
+    return True
 
 def handle_special_wiki_apache(parts):
     apache_file = get_file_from_gerrit('operations/puppet/+/production/modules/mediawiki/manifests/web/prod_sites.pp')
@@ -84,15 +79,10 @@ def hande_task(phid):
     if len(parts) != 3 or parts[2] != 'org':
         return
 
-    if parts[1] == 'wikimedia':
-        dns = handle_special_wiki_dns(parts)
-        special = True
-        dns_url = gerrit_path + 'operations/dns/+/master/templates/wikimedia.org'
+    special = parts[1] == 'wikimedia'
+    dns_url = gerrit_path + 'operations/dns/+/master/templates/wikimedia.org' if special else gerrit_path + 'operations/dns/+/master/templates/helpers/langlist.tmpl'
 
-    else:
-        dns = handle_non_special_wikis(parts, language_code)
-        dns_url = gerrit_path + 'operations/dns/+/master/templates/helpers/langlist.tmpl'
-        special = False
+    dns = hostname_resolves(url)
     if not dns:
         add_text(' [] [[{}|DNS]]'.format(dns_url))
         if special:
