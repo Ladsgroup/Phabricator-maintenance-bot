@@ -83,6 +83,7 @@ def hande_task(phid):
     parts = url.split('.')
     if len(parts) != 3 or parts[2] != 'org':
         return
+
     if parts[1] == 'wikimedia':
         dns = handle_special_wiki_dns(parts)
         special = True
@@ -104,9 +105,9 @@ def hande_task(phid):
         add_text(' [x] [[{}|DNS]]'.format(dns_url))
 
     if parts[1] == 'wikipedia':
-        db_name = parts[0] + 'wiki'
+        db_name = parts[0].replace('-', '_') + 'wiki'
     else:
-        db_name = parts[0] + parts[1]
+        db_name = parts[0].replace('-', '_') + parts[1]
 
     handle_subticket_for_cloud(client.lookupPhid('T251371'), task_details, db_name)
 
