@@ -65,18 +65,22 @@ def create_apache_config_subticket(parts, task_details):
 def hande_task(phid):
     global final_text
     final_text = ''
-    add_text('\n\n------\n**Pre-install automatic checklist:**')
     task_details = client.taskDetails(phid)
+    print('Checking', task_details['id'])
+    add_text('\n\n------\n**Pre-install automatic checklist:**')
     language_code = re.findall(r'\n- *?\*\*Language code:\*\* *?(\S+)', task_details['description'])
     if not language_code:
+        print('lang code not found, skipping')
         return
     language_code = language_code[0]
     url = re.findall(r'\n- *?\*\*Site URL:\*\* *?(\S+)', task_details['description'])
     if not url:
+        print('url not found, skipping')
         return
     url = url[0]
     parts = url.split('.')
     if len(parts) != 3 or parts[2] != 'org':
+        print('the url looks weird, skipping')
         return
 
     special = parts[1] == 'wikimedia'
@@ -133,7 +137,6 @@ def hande_task(phid):
     else:
         core_lang = False
         add_text(' [] [[{}|Language configuration in mediawiki core]]'.format(core_messages_url))
-
     path = 'mediawiki/extensions/WikimediaMessages/+/master/i18n/wikimediaprojectnames/en.json'
     wikimedia_messages_data = get_file_from_gerrit(path)
     wikimedia_messages_data = json.loads(wikimedia_messages_data)
