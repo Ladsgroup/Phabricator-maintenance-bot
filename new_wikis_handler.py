@@ -208,7 +208,7 @@ def hande_task(phid):
 
     url = 'pywikibot/core/+/master/pywikibot/families/{}_family.py'.format(parts[1])
     pywikibot = get_file_from_gerrit(url)
-    if f"'{language_code}'" in pywikibot:
+    if "'{}'".format(language_code) in pywikibot:
         add_text(' [x] [[{}|Pywikibot]]'.format(gerrit_path + url))
     else:
         add_text(' [] [[{}|Pywikibot]]'.format(gerrit_path + url))
