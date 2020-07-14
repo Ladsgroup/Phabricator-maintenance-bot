@@ -66,7 +66,7 @@ def hande_task(phid):
     global final_text
     final_text = ''
     task_details = client.taskDetails(phid)
-    print('Checking', task_details['id'])
+    print('Checking T%s' % task_details['id'])
     add_text('\n\n------\n**Pre-install automatic checklist:**')
     language_code = re.findall(r'\n- *?\*\*Language code:\*\* *?(\S+)', task_details['description'])
     if not language_code:
@@ -266,7 +266,6 @@ def hande_task(phid):
 def main():
     open_create_wikis_phid = 'PHID-PROJ-kmpu7gznmc2edea3qn2x'
     for phid in client.getTasksWithProject(open_create_wikis_phid, statuses=['open']):
-        print('Checking', phid)
         hande_task(phid)
 
 
