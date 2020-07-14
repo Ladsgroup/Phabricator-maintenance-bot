@@ -20,7 +20,11 @@ def add_text(a):
 def get_file_from_gerrit(path):
     gerrit_url = 'https://gerrit.wikimedia.org/g/'
     url = gerrit_url + '{0}?format=TEXT'.format(path)
-    return base64.b64decode(requests.get(url).text).decode('utf-8')
+    r = requests.get(url)
+    if r.status_code == 200:
+        return base64.b64decode(r.text).decode('utf-8')
+    else:
+        return ''
 
 
 def hostname_resolves(hostname):
