@@ -248,8 +248,8 @@ def hande_task(phid):
     add_text('`scap sync-wikiversions "{}"`'.format(summary))
     if parts[1] == 'wikimedia':
         add_text('`scap sync-file multiversion/MWMultiVersion.php "{}"`'.format(summary))
-    add_text('`scap sync-file wmf-config/InitialiseSettings.php "{}"`'.format(summary))
     add_text('`scap sync-file static/images/project-logos/ "{}"`'.format(summary))
+    add_text('`scap sync-file wmf-config/InitialiseSettings.php "{}"`'.format(summary))
     if parts[1] != 'wikimedia':
         add_text('`scap sync-file langlist "{}"`'.format(summary))
     add_text('`scap update-interwiki-cache`')
