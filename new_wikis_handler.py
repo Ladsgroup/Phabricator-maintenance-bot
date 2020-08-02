@@ -72,7 +72,7 @@ def get_dummy_wiki(shard, family):
         }.get(shard, "?????")
     else:
         return {
-            #"s3": "aawiki",
+            "s3": "aawiki",
             "s5": "cebwiki" # TODO: Change this to muswiki once T259004 is done
         }.get(shard, "?????")
 
@@ -246,7 +246,7 @@ def hande_task(phid):
     add_text(' [] Clean up old interwiki links')
     add_text('\n-------')
     add_text('**Step by step commands**:')
-    dummy_wiki = get_dummy_wiki("s3", parts[1])
+    dummy_wiki = get_dummy_wiki(shard, parts[1])
     add_text('On deploy1001:')
     add_text('`cd /srv/mediawiki-staging/`')
     add_text('`git fetch`')
