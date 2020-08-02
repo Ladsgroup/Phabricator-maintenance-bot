@@ -65,6 +65,17 @@ def handle_subticket_for_cloud(ticket_phid, task_details, db_name):
 def create_apache_config_subticket(parts, task_details):
     pass
 
+def get_dummy_wiki(shard, family):
+    if family == "wiktionary":
+        return {
+            "s3": "aawiki"
+        }.get(shard, "?????")
+    else:
+        return {
+            #"s3": "aawiki",
+            "s5": "cebwiki" # TODO: Change this to muswiki once T259004 is done
+        }.get(shard, "?????")
+
 
 def hande_task(phid):
     global final_text
@@ -86,6 +97,13 @@ def hande_task(phid):
     if len(parts) != 3 or parts[2] != 'org':
         print('the url looks weird, skipping')
         return
+    shard = re.findall(r'\n- *?\*\*Shard:\*\* *?(\S+)', task_details['description'])[0]
+
+    shardDecided = shard != "TBD"
+    if shardDecided:
+        add_text(' [X] #DBA decided about the shard')
+    else:
+        add_text(' [] #DBA decided about the shard')
 
     special = parts[1] == 'wikimedia'
     dns_url = gerrit_path + 'operations/dns/+/master/templates/wikimedia.org' if special else gerrit_path + 'operations/dns/+/master/templates/helpers/langlist.tmpl'
@@ -183,7 +201,7 @@ def hande_task(phid):
         wikimedia_messages_two_deployed = True
         add_text(' [x] Wikimedia messages (interwiki search result) configuration (not needed)')
 
-    if dns and apache and langdb and core_lang and wikimedia_messages_one and wikimedia_messages_one_deployed and wikimedia_messages_two and wikimedia_messages_two_deployed:
+    if dns and apache and langdb and core_lang and wikimedia_messages_one and wikimedia_messages_one_deployed and wikimedia_messages_two and wikimedia_messages_two_deployed and shardDecided:
         add_text('**The Wiki is ready to be created.**')
     else:
         add_text('**The creation is blocked until these part are all done.**')
@@ -228,10 +246,7 @@ def hande_task(phid):
     add_text(' [] Clean up old interwiki links')
     add_text('\n-------')
     add_text('**Step by step commands**:')
-    if parts[1] == 'wiktionary':
-        dummy_wiki = 'aawiktionary'
-    else:
-        dummy_wiki = 'aawiki'
+    dummy_wiki = get_dummy_wiki("s3", parts[1])
     add_text('On deploy1001:')
     add_text('`cd /srv/mediawiki-staging/`')
     add_text('`git fetch`')
