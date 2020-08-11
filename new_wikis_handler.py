@@ -68,12 +68,13 @@ def create_apache_config_subticket(parts, task_details):
 def get_dummy_wiki(shard, family):
     if family == "wiktionary":
         return {
-            "s3": "aawiki"
+            "s3": "aawiki",
+            "s5": "mhwiktionary",
         }.get(shard, "?????")
     else:
         return {
             "s3": "aawiki",
-            "s5": "cebwiki" # TODO: Change this to muswiki once T259004 is done
+            "s5": "muswiki"
         }.get(shard, "?????")
 
 
