@@ -260,6 +260,9 @@ def hande_task(phid):
     ))
     summary = 'Creating {db_name} ({phab})'.format(db_name=db_name, phab='T' + task_details['id'])
     add_text('On deploy1001:')
+    if shard != "s3":
+        add_text('`scap sync-file wmf-config/db-eqiad.php "{}"`'.format(summary))
+        add_text('`scap sync-file wmf-config/db-codfw.php "{}"`'.format(summary))
     add_text('`scap sync-file dblists "{}"`'.format(summary))
     add_text('`scap sync-wikiversions "{}"`'.format(summary))
     if parts[1] == 'wikimedia':
