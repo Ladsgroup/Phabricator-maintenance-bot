@@ -1,6 +1,6 @@
 import json
-import time
 import sys
+import time
 
 import requests
 
@@ -71,6 +71,27 @@ class Client(object):
             }]
         })
 
+    def createSubtask(self, desc, project_phids, parent_phid, title):
+        self.post('maniphest.edit', {
+            'objectIdentifier': '',
+            'transactions': [{
+                'type': 'parent',
+                'value': parent_phid
+            },
+                {
+                'type': 'title',
+                'value': title
+            },
+                {
+                'type': 'description',
+                'value': desc,
+            },
+                {
+                'type': 'projects.add',
+                'value': project_phids
+            }]
+        })
+
     def taskDetails(self, phid):
         """Lookup details of a Maniphest task."""
         r = self.post('maniphest.query', {'phids': [phid]})
@@ -97,7 +118,8 @@ class Client(object):
         })
 
     def getTasksWithProject(self, project_phid, continue_=None, statuses=None):
-        r = self._getTasksWithProjectContinue(project_phid, continue_, statuses=statuses)
+        r = self._getTasksWithProjectContinue(
+            project_phid, continue_, statuses=statuses)
         cursor = r['cursor']
         for case in r['data']:
             if case['type'] != 'TASK':
@@ -133,3 +155,13 @@ class Client(object):
         }
         return self.post('maniphest.search', params)[
             'data'][0]['attachments']['columns']
+
+    def getTaskSubtasks(self, phid):
+        params = {
+            "constraints": {
+                "phids": [phid],
+                "hasSubtasks": True
+            }
+        }
+        return self.post('maniphest.search', params)[
+            'data']
