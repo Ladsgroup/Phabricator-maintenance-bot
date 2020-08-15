@@ -1,5 +1,7 @@
 # My credentials
 creds.json
+private_key
+gerrit-creds.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
