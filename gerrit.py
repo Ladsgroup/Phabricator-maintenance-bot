@@ -23,7 +23,8 @@ from contextlib import contextmanager
 
 import requests
 
-with open('gerrit-creds.json', 'r') as f:
+dir_path = os.path.dirname(os.path.realpath(__file__))
+with open(os.path.join(dir_path, 'gerrit-creds.json'), 'r') as f:
     creds = json.loads(f.read())
 
 
