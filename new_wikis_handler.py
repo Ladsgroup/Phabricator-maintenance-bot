@@ -143,17 +143,19 @@ def hande_task(phid):
             create_patch_for_dns(language_code, task_tid)
     add_checklist(dns_url, 'DNS', dns)
 
-    if parts[1] == 'wikipedia':
-        db_name = parts[0].replace('-', '_') + 'wiki'
-    else:
-        db_name = parts[0].replace('-', '_') + parts[1]
+    db_name = wiki_spec.get('Database name')
+    if not db_name:
+        if parts[1] == 'wikipedia':
+            db_name = parts[0].replace('-', '_') + 'wiki'
+        else:
+            db_name = parts[0].replace('-', '_') + parts[1]
 
     if not special and wiki_spec.get('Special', '').lower() != 'yes':
         handle_subticket_for_cloud(task_details, db_name)
 
     if special:
         apache_url = gerrit_path + \
-            'operations/puppet/+/master/modules/mediawiki/manifests/web/prod_sites.pp'
+            'operations/puppet/+/production/modules/mediawiki/manifests/web/prod_sites.pp'
         if not handle_special_wiki_apache(parts):
             apache = False
         else:
