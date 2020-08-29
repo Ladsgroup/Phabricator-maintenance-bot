@@ -80,6 +80,7 @@ class ShellMixin:
         self.check_call(['git', 'config', 'user.name', creds['name']])
         self.check_call(['git', 'config', 'user.email', creds['email']])
         self.check_call(['git', 'submodule', 'update', '--init'])
+        load_ssh_key()
         self.check_call(['scp', '-p', '-P', '29418', creds['name'] +
                          '@gerrit.wikimedia.org:hooks/commit-msg', '.git/hooks/'])
 
@@ -126,7 +127,6 @@ class GerritBot(ShellMixin):
         with open('.git/COMMIT_EDITMSG', 'w') as f:
             f.write(self.commit_message)
         self.check_call(['git', 'commit', '-F', '.git/COMMIT_EDITMSG'])
-        load_ssh_key()
         self.check_call(self.build_push_command(
             {'hashtags': ['automated-wiki-creation'], 'repo': self.name}))
 

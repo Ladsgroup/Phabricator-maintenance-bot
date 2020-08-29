@@ -6,7 +6,8 @@ import socket
 import requests
 
 from lib import Client
-from patch_makers import DnsPatchMaker, WikimediaMessagesPatchMaker
+from patch_makers import (AnalyticsPatchMaker, CxPatchMaker, DnsPatchMaker,
+                          WikimediaMessagesPatchMaker)
 
 final_text = ''
 gerrit_path = 'https://gerrit.wikimedia.org/g/'
@@ -62,17 +63,28 @@ def handle_restbase(url):
     add_checklist(gerrit_path + path, 'RESTbase', url in restbase)
 
 
-def handle_cx(language_code):
+def handle_cx(language_code, bug_id):
     path = get_gerrit_path(
         'mediawiki/services/cxserver',
         'config/languages.yaml'
     )
     cxconfig = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'CX Config',
-                  '\n- ' + language_code in cxconfig)
+    cx = '\n- ' + language_code in cxconfig
+    add_checklist(gerrit_path + path, 'CX Config', cx)
+    if cx:
+        return
+
+    r = requests.get(
+        'https://gerrit.wikimedia.org/r/changes/'
+        '?q=bug:{}+project:mediawiki/services/cxserver'.format(bug_id))
+    b = json.loads('\n'.join(r.text.split('\n')[1:]))
+    if b:
+        return
+    maker = CxPatchMaker(lang, bug_id)
+    maker.run()
 
 
-def handle_analytics(url):
+def handle_analytics(url, bug_id):
     path = get_gerrit_path(
         'analytics/refinery',
         'static_data/pageview/whitelist/whitelist.tsv'
@@ -80,6 +92,17 @@ def handle_analytics(url):
     refinery_whitelist = get_file_from_gerrit(path)
     add_checklist(gerrit_path + path, 'Analytics refinery',
                   url in refinery_whitelist)
+    if url in refinery_whitelist:
+        return
+
+    r = requests.get(
+        'https://gerrit.wikimedia.org/r/changes/'
+        '?q=bug:{}+project:analytics/refinery'.format(bug_id))
+    b = json.loads('\n'.join(r.text.split('\n')[1:]))
+    if b:
+        return
+    maker = AnalyticsPatchMaker(lang, bug_id)
+    maker.run()
 
 
 def handle_pywikibot(family, language_code):
@@ -413,8 +436,8 @@ def hande_task(task_details):
 
     add_text('\n-------\n**Post install automatic checklist:**')
     handle_restbase(url)
-    handle_cx(language_code)
-    handle_analytics('.'.join(parts[:2]))
+    handle_cx(language_code, task_tid)
+    handle_analytics('.'.join(parts[:2]), task_tid)
     handle_pywikibot(parts[1], language_code)
     handle_wikidata(db_name)
     add_text(' [] Import from Incubator')

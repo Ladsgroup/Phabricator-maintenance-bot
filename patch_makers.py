@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 from gerrit import GerritBot
 
@@ -54,7 +55,7 @@ class WikimediaMessagesPatchMaker(GerritBot):
                                indent='\t', sort_keys=True))
 
 
-def DnsPatchMaker():
+class DnsPatchMaker(GerritBot):
     def __init__(self, lang, bug_id):
         self.wiki_lang = lang
         super().__init__(
@@ -79,4 +80,65 @@ def DnsPatchMaker():
         langs.append("        '{}',".format(self.wiki_lang))
         langs.sort()
         with open('templates/helpers/langlist.tmpl', 'w') as f:
-            f.write('\n'.join(footer) + '\n'.join(langs) + '\n'.join(footer))
+            f.write('\n'.join(header) + '\n' +
+                    '\n'.join(langs) + '\n' + '\n'.join(footer))
+
+
+class CxPatchMaker(GerritBot):
+    def __init__(self, lang, bug_id):
+        self.wiki_lang = lang
+        super().__init__(
+            'mediawiki/services/cxserver',
+            'Add {} to languages \n\nBug:{}'.format(lang, bug_id)
+        )
+
+    def changes(self):
+        with open('config/languages.yaml', 'r') as f:
+            lines = f.read().split('\n')[:-1]
+        lines.append("- {}".format(self.wiki_lang))
+        lines.sort()
+        with open('config/languages.yaml', 'w') as f:
+            f.write('\n'.join(lines) + '\n')
+
+
+class AnalyticsPatchMaker(GerritBot):
+    def __init__(self, project, bug_id):
+        self.project = project
+        super().__init__(
+            'analytics/refinery',
+            'Add {} to pageview whitelist \n\nBug:{}'.format(project, bug_id)
+        )
+
+    def changes(self):
+        with open('static_data/pageview/whitelist/whitelist.tsv', 'r') as f:
+            lines = f.read().split('\n')
+        projects = []
+        non_projects = []
+        for line in lines:
+            if line.startswith('project'):
+                projects.append(line)
+            else:
+                non_projects.append(line)
+        today = date.today()
+        projects.append('project\t{}\t{}'.format(
+            self.project,
+            today.strftime("%Y-%m-%d 00:00:00")
+        ))
+        projects.sort()
+        with open('static_data/pageview/whitelist/whitelist.tsv', 'w') as f:
+            f.write('\n'.join(projects) + '\n' + '\n'.join(non_projects))
+
+
+class CxPatchMakerTemp(GerritBot):
+    def __init__(self):
+        super().__init__(
+            'mediawiki/services/cxserver',
+            'Order entries by alphabetical order\n\nThis would make creating automated patches easier\n\nBug: T253439'
+        )
+
+    def changes(self):
+        with open('config/languages.yaml', 'r') as f:
+            lines = f.read().split('\n')[:-1]
+        lines.sort()
+        with open('config/languages.yaml', 'w') as f:
+            f.write('\n'.join(lines) + '\n')
