@@ -35,6 +35,16 @@ def get_file_from_gerrit(path):
         return ''
 
 
+def get_gerrit_path(repo, filename):
+    return repo + '/+/master/' + filename
+
+
+def get_github_url(repo, filename):
+    return 'https://raw.githubusercontent.com/wikimedia/{}/master/{}'.format(
+        repo, filename
+    )
+
+
 def hostname_resolves(hostname):
     try:
         socket.gethostbyname(hostname)
@@ -43,9 +53,58 @@ def hostname_resolves(hostname):
     return True
 
 
+def handle_restbase(url):
+    path = get_gerrit_path(
+        'mediawiki/services/restbase/deploy',
+        'scap/vars.yaml'
+    )
+    restbase = get_file_from_gerrit(path)
+    add_checklist(gerrit_path + path, 'RESTbase', url in restbase)
+
+
+def handle_cx(language_code):
+    path = get_gerrit_path(
+        'mediawiki/services/cxserver',
+        'config/languages.yaml'
+    )
+    cxconfig = get_file_from_gerrit(path)
+    add_checklist(gerrit_path + path, 'CX Config',
+                  '\n- ' + language_code in cxconfig)
+
+
+def handle_analytics(url):
+    path = get_gerrit_path(
+        'analytics/refinery',
+        'static_data/pageview/whitelist/whitelist.tsv'
+    )
+    refinery_whitelist = get_file_from_gerrit(path)
+    add_checklist(gerrit_path + path, 'Analytics refinery',
+                  url in refinery_whitelist)
+
+
+def handle_pywikibot(family, language_code):
+    path = get_gerrit_path(
+        'pywikibot/core',
+        'pywikibot/families/{}_family.py'.format(family)
+    )
+    pywikibot = get_file_from_gerrit(path)
+    add_checklist(gerrit_path + path, 'Pywikibot',
+                  "'{}'".format(language_code) in pywikibot)
+
+
+def handle_wikidata(db_name):
+    url = 'https://www.wikidata.org/w/api.php'
+    wikiata_help_page = requests.get(url, params={
+        'action': 'help',
+        'modules': 'wbgetentities'
+    }).text
+    add_checklist(url, 'Wikidata', db_name in wikiata_help_page)
+
+
 def handle_special_wiki_apache(parts):
+    file_path = 'modules/mediawiki/manifests/web/prod_sites.pp'
     apache_file = get_file_from_gerrit(
-        'operations/puppet/+/production/modules/mediawiki/manifests/web/prod_sites.pp')
+        'operations/puppet/+/production/' + file_path)
     url = '.'.join(parts)
     return url in apache_file
 
@@ -80,11 +139,13 @@ def get_dummy_wiki(shard, family):
         }.get(shard, "?????")
 
 
-def create_patch_for_wikimedia_messages(db_name, english_name, url, lang, bug_id):
+def create_patch_for_wikimedia_messages(
+        db_name, english_name, url, lang, bug_id):
     if not english_name:
         return
     r = requests.get(
-        'https://gerrit.wikimedia.org/r/changes/?q=bug:{}+project:mediawiki/extensions/WikimediaMessages'.format(bug_id))
+        'https://gerrit.wikimedia.org/r/changes/?q='
+        'bug:{}+project:mediawiki/extensions/WikimediaMessages'.format(bug_id))
     b = json.loads('\n'.join(r.text.split('\n')[1:]))
     if b:
         return
@@ -93,9 +154,117 @@ def create_patch_for_wikimedia_messages(db_name, english_name, url, lang, bug_id
     maker.run()
 
 
+def handle_dns(special, url, language_code, task_tid):
+    dns_path = get_gerrit_path(
+        'operations/dns',
+        'templates/wikimedia.org' if special else
+        'templates/helpers/langlist.tmpl')
+    dns_url = gerrit_path + dns_path
+    dns = hostname_resolves(url)
+    if not dns:
+        if not special:
+            create_patch_for_dns(language_code, task_tid)
+    add_checklist(dns_url, 'DNS', dns)
+    return dns
+
+
+def handle_apache(special, parts):
+    if not special:
+        add_text(' [x] Apache config (Not needed)')
+        return True
+
+    file_path = 'modules/mediawiki/manifests/web/prod_sites.pp'
+    apache_url = gerrit_path + \
+        'operations/puppet/+/production/' + file_path
+    if not handle_special_wiki_apache(parts):
+        apache = False
+    else:
+        apache = True
+    add_checklist(apache_url, 'Apache config', apache)
+    return apache
+
+
+def handle_langdb(language_code):
+    langdb_url = get_github_url('language-data', 'data/langdb.yaml')
+    r = requests.get(langdb_url)
+    config = 'Language configuration in language data repo'
+    if re.search(r'\n *?' + language_code + ':', r.text):
+        langdb = True
+    else:
+        langdb = False
+    add_checklist(langdb_url, config, langdb)
+    return langdb
+
+
+def handle_wikimedia_messages_one(
+        db_name,
+        wiki_spec,
+        url,
+        language_code,
+        task_tid):
+    path = get_gerrit_path(
+        'mediawiki/extensions/WikimediaMessages',
+        'i18n/wikimediaprojectnames/en.json'
+    )
+    wikimedia_messages_data = get_file_from_gerrit(path)
+    wikimedia_messages_data = json.loads(wikimedia_messages_data)
+    if 'project-localized-name-' + db_name in wikimedia_messages_data:
+        wikimedia_messages_one = True
+    else:
+        wikimedia_messages_one = False
+        english_name = wiki_spec.get('Project name (English)')
+        create_patch_for_wikimedia_messages(
+            db_name, english_name, url, language_code, task_tid)
+    add_checklist(gerrit_path + path,
+                  'Wikimedia messages configuration', wikimedia_messages_one)
+    url = 'https://en.wikipedia.org/wiki/' + \
+        'MediaWiki:Project-localized-name-' + db_name
+    r = requests.get(url)
+    if 'Wikipedia does not have a' not in r.text:
+        wikimedia_messages_one_deployed = True
+        add_text('  [x] [[{}|deployed]]'.format(url))
+    else:
+        wikimedia_messages_one_deployed = False
+        add_text('  [] [[{}|deployed]]'.format(url))
+
+    return wikimedia_messages_one and wikimedia_messages_one_deployed
+
+
+def handle_wikimedia_messages_two(db_name, parts):
+    config = 'Wikimedia messages (interwiki search result) configuration'
+    if parts[1] != 'wikipedia':
+        add_text(' [x] {} (not needed)'.format(config))
+        return True
+
+    path = get_gerrit_path(
+        'mediawiki/extensions/WikimediaMessages',
+        'i18n/wikimediainterwikisearchresults/en.json'
+    )
+    search_messages_data = json.loads(get_file_from_gerrit(path))
+    if 'search-interwiki-results-' + db_name in search_messages_data:
+        wikimedia_messages_two = True
+    else:
+        wikimedia_messages_two = False
+    add_checklist(
+        gerrit_path + path,
+        config,
+        wikimedia_messages_two)
+    url = 'https://en.wikipedia.org/wiki/' + \
+        'MediaWiki:Search-interwiki-results-' + db_name
+    r = requests.get(url)
+    if 'Wikipedia does not have a' not in r.text:
+        wikimedia_messages_two_deployed = True
+        add_text('  [x] [[{}|deployed]]'.format(url))
+    else:
+        wikimedia_messages_two_deployed = False
+        add_text('  [] [[{}|deployed]]'.format(url))
+    return wikimedia_messages_two and wikimedia_messages_two_deployed
+
+
 def create_patch_for_dns(lang, bug_id):
     r = requests.get(
-        'https://gerrit.wikimedia.org/r/changes/?q=bug:{}+project:operations/dns'.format(bug_id))
+        'https://gerrit.wikimedia.org/r/changes/'
+        '?q=bug:{}+project:operations/dns'.format(bug_id))
     b = json.loads('\n'.join(r.text.split('\n')[1:]))
     if b:
         return
@@ -103,15 +272,105 @@ def create_patch_for_dns(lang, bug_id):
     maker.run()
 
 
-def hande_task(phid):
+def handle_core_lang(language_code):
+    core_messages_url = get_github_url(
+        'mediawiki',
+        'languages/messages/Messages{}.php'.format(
+            language_code[0].upper() + language_code[1:]))
+    r = requests.get(core_messages_url)
+    if r.status_code == 200:
+        core_lang = True
+    else:
+        core_lang = False
+    add_checklist(core_messages_url,
+                  'Language configuration in mediawiki core', core_lang)
+    return core_lang
+
+
+def get_db_name(wiki_spec, parts):
+    db_name = wiki_spec.get('Database name')
+    if not db_name:
+        if parts[1] == 'wikipedia':
+            db_name = parts[0].replace('-', '_') + 'wiki'
+        else:
+            db_name = parts[0].replace('-', '_') + parts[1]
+    return db_name
+
+
+def sync_file(path, summary):
+    return '`scap sync-file {} "{}"`'.format(path, summary)
+
+
+def add_create_instructions(parts, shard, language_code, db_name, task_tid):
+    add_text('\n-------')
+    add_text('**Step by step commands**:')
+    dummy_wiki = get_dummy_wiki(shard, parts[1])
+    add_text('On deploy1001:')
+    add_text('`cd /srv/mediawiki-staging/`')
+    add_text('`git fetch`')
+    add_text('`git log -p HEAD..@{u}`')
+    add_text('`git rebase`')
+    add_text('On mwmaint1002:')
+    add_text('`scap pull`')
+    addwiki_path = 'mwscript extensions/WikimediaMaintenance/addWiki.php'
+    add_text(
+        '`{addwiki_path} --wiki={dummy} {lang} {family} {db} {url}`'.format(
+            addwiki_path=addwiki_path,
+            dummy=dummy_wiki,
+            lang=language_code,
+            family=parts[1],
+            db=db_name,
+            url='.'.join(parts)))
+    summary = 'Creating {db_name} ({phab})'.format(
+        db_name=db_name, phab=task_tid)
+    add_text('On deploy1001:')
+    if shard != "s3":
+        add_text(sync_file('wmf-config/db-eqiad.php', summary))
+        add_text(sync_file('wmf-config/db-codfw.php', summary))
+    add_text(sync_file('dblists', summary))
+    add_text('`scap sync-wikiversions "{}"`'.format(summary))
+    if parts[1] == 'wikimedia':
+        add_text(sync_file('multiversion/MWMultiVersion.php', summary))
+    add_text(sync_file('static/images/project-logos/', summary))
+    add_text(sync_file('wmf-config/InitialiseSettings.php', summary))
+    if parts[1] != 'wikimedia':
+        add_text(sync_file('langlist', summary))
+    add_text('`scap update-interwiki-cache`')
+
+
+def update_task_report(task_details):
+    global final_text
+    if not final_text:
+        return
+    old_report = re.findall(
+        r'(\n\n------\n\*\*Pre-install automatic checklist:'
+        r'\*\*.+?\n\*\*End of automatic output\*\*\n)',
+        task_details['description'], re.DOTALL)
+    if not old_report:
+        print('old report not found, appending')
+        client.setTaskDescription(
+            task_details['phid'], task_details['description'] + final_text)
+    else:
+        if old_report[0] != final_text:
+            print('Updating old report')
+            client.setTaskDescription(
+                task_details['phid'],
+                task_details['description'].replace(
+                    old_report[0],
+                    final_text))
+
+
+def hande_task(task_details):
     global final_text
     final_text = ''
-    task_details = client.taskDetails(phid)
     print('Checking T%s' % task_details['id'])
     task_tid = 'T' + task_details['id']
-    add_text('\n\n------\n**Pre-install automatic checklist:**')
+
+    # Extract wiki config
     wiki_spec = {}
-    for case in re.findall(r'\n- *?\*\*(.+?):\*\* *?(.+)', task_details['description']):
+    for case in re.findall(
+        r'\n- *?\*\*(.+?):\*\* *?(.+)',
+            task_details['description']):
         wiki_spec[case[0].strip()] = case[1].strip()
     language_code = wiki_spec.get('Language code')
     if not language_code:
@@ -125,195 +384,53 @@ def hande_task(phid):
     if len(parts) != 3 or parts[2] != 'org':
         print('the url looks weird, skipping')
         return
+    db_name = get_db_name(wiki_spec, parts)
     shard = wiki_spec.get('Shard', 'TBD')
-
     shardDecided = shard != "TBD"
+    special = parts[1] == 'wikimedia'
+
+    add_text('\n\n------\n**Pre-install automatic checklist:**')
     if shardDecided:
         add_text(' [X] #DBA decided about the shard')
     else:
         add_text(' [] #DBA decided about the shard')
-
-    special = parts[1] == 'wikimedia'
-    dns_url = gerrit_path + 'operations/dns/+/master/templates/wikimedia.org' if special else gerrit_path + \
-        'operations/dns/+/master/templates/helpers/langlist.tmpl'
-
-    dns = hostname_resolves(url)
-    if not dns:
-        if not special:
-            create_patch_for_dns(language_code, task_tid)
-    add_checklist(dns_url, 'DNS', dns)
-
-    db_name = wiki_spec.get('Database name')
-    if not db_name:
-        if parts[1] == 'wikipedia':
-            db_name = parts[0].replace('-', '_') + 'wiki'
-        else:
-            db_name = parts[0].replace('-', '_') + parts[1]
-
+    dns = handle_dns(special, url, language_code, task_tid)
     if not special and wiki_spec.get('Special', '').lower() != 'yes':
         handle_subticket_for_cloud(task_details, db_name)
-
-    if special:
-        apache_url = gerrit_path + \
-            'operations/puppet/+/production/modules/mediawiki/manifests/web/prod_sites.pp'
-        if not handle_special_wiki_apache(parts):
-            apache = False
-        else:
-            apache = True
-        add_checklist(apache_url, 'Apache config', apache)
-    else:
-        apache = True
-        add_text(' [x] Apache config (Not needed)')
-
-    langdb_url = 'https://raw.githubusercontent.com/wikimedia/language-data/master/data/langdb.yaml'
-    r = requests.get(langdb_url)
-    if re.search(r'\n *?' + language_code + ':', r.text):
-        langdb = True
-        add_text(
-            ' [x] [[{}|Language configuration in language data repo]]'.format(langdb_url))
-    else:
-        langdb = False
-        add_text(
-            ' [] [[{}|Language configuration in language data repo]]'.format(langdb_url))
-
-    core_messages_url = 'https://raw.githubusercontent.com/wikimedia/mediawiki/master/languages/messages/Messages{}.php'.format(
-        language_code[0].upper() + language_code[1:]
+    apache = handle_apache(special, parts)
+    langdb = handle_langdb(language_code)
+    core_lang = handle_core_lang(language_code)
+    wm_message_one = handle_wikimedia_messages_one(
+        db_name, wiki_spec, url, language_code, task_tid
     )
-    r = requests.get(core_messages_url)
-    if r.status_code == 200:
-        core_lang = True
-    else:
-        core_lang = False
-    add_checklist(core_messages_url,
-                  'Language configuration in mediawiki core', core_lang)
+    wm_message_two = handle_wikimedia_messages_two(db_name, parts)
 
-    path = 'mediawiki/extensions/WikimediaMessages/+/master/i18n/wikimediaprojectnames/en.json'
-    wikimedia_messages_data = get_file_from_gerrit(path)
-    wikimedia_messages_data = json.loads(wikimedia_messages_data)
-    if 'project-localized-name-' + db_name in wikimedia_messages_data:
-        wikimedia_messages_one = True
-    else:
-        wikimedia_messages_one = False
-        english_name = wiki_spec.get('Project name (English)')
-        create_patch_for_wikimedia_messages(
-            db_name, english_name, url, language_code, task_tid)
-    add_checklist(gerrit_path + path,
-                  'Wikimedia messages configuration', wikimedia_messages_one)
-    url = 'https://en.wikipedia.org/wiki/MediaWiki:Project-localized-name-' + db_name
-    r = requests.get(url)
-    if 'Wikipedia does not have a' not in r.text:
-        wikimedia_messages_one_deployed = True
-        add_text('  [x] [[{}|deployed]]'.format(url))
-    else:
-        wikimedia_messages_one_deployed = False
-        add_text('  [] [[{}|deployed]]'.format(url))
-
-    if parts[1] == 'wikipedia':
-        path = 'mediawiki/extensions/WikimediaMessages/+/master/i18n/wikimediainterwikisearchresults/en.json'
-        search_messages_data = get_file_from_gerrit(path)
-        search_messages_data = json.loads(search_messages_data)
-        if 'search-interwiki-results-' + db_name in search_messages_data:
-            wikimedia_messages_two = True
-        else:
-            wikimedia_messages_two = False
-        add_checklist(gerrit_path + path,
-                      'Wikimedia messages (interwiki search result) configuration', wikimedia_messages_two)
-        url = 'https://en.wikipedia.org/wiki/MediaWiki:Search-interwiki-results-' + db_name
-        r = requests.get(url)
-        if 'Wikipedia does not have a' not in r.text:
-            wikimedia_messages_two_deployed = True
-            add_text('  [x] [[{}|deployed]]'.format(url))
-        else:
-            wikimedia_messages_two_deployed = False
-            add_text('  [] [[{}|deployed]]'.format(url))
-    else:
-        wikimedia_messages_two = True
-        wikimedia_messages_two_deployed = True
-        add_text(
-            ' [x] Wikimedia messages (interwiki search result) configuration (not needed)')
-
-    if dns and apache and langdb and core_lang and wikimedia_messages_one and wikimedia_messages_one_deployed and wikimedia_messages_two and wikimedia_messages_two_deployed and shardDecided:
+    if dns and apache and langdb and core_lang and wm_message_one and \
+            wm_message_two and shardDecided:
         add_text('**The Wiki is ready to be created.**')
     else:
         add_text('**The creation is blocked until these part are all done.**')
 
     add_text('\n-------\n**Post install automatic checklist:**')
-
-    path = 'mediawiki/services/restbase/deploy/+/master/scap/vars.yaml'
-    restbase = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'RESTbase', '.'.join(parts) in restbase)
-
-    path = 'mediawiki/services/cxserver/+/master/config/languages.yaml'
-    cxconfig = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'CX Config',
-                  '\n- ' + language_code in cxconfig)
-
-    path = 'analytics/refinery/+/master/static_data/pageview/whitelist/whitelist.tsv'
-    refinery_whitelist = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'Analytics refinery',
-                  '.'.join(parts[:2]) in refinery_whitelist)
-
-    url = 'pywikibot/core/+/master/pywikibot/families/{}_family.py'.format(
-        parts[1])
-    pywikibot = get_file_from_gerrit(url)
-    add_checklist(gerrit_path + url, 'Pywikibot',
-                  "'{}'".format(language_code) in pywikibot)
-
-    url = 'https://www.wikidata.org/w/api.php?action=help&modules=wbgetentities'
-    wikiata_help_page = requests.get(url).text
-    add_checklist(url, 'Wikidata', db_name in wikiata_help_page)
-
+    handle_restbase(url)
+    handle_cx(language_code)
+    handle_analytics('.'.join(parts[:2]))
+    handle_pywikibot(parts[1], language_code)
+    handle_wikidata(db_name)
     add_text(' [] Import from Incubator')
     add_text(' [] Clean up old interwiki links')
-    add_text('\n-------')
-    add_text('**Step by step commands**:')
-    dummy_wiki = get_dummy_wiki(shard, parts[1])
-    add_text('On deploy1001:')
-    add_text('`cd /srv/mediawiki-staging/`')
-    add_text('`git fetch`')
-    add_text('`git log -p HEAD..@{u}`')
-    add_text('`git rebase`')
-    add_text('On mwmaint1002:')
-    add_text('`scap pull`')
-    add_text('`mwscript extensions/WikimediaMaintenance/addWiki.php --wiki={dummy} {lang} {family} {db} {url}`'.format(
-        dummy=dummy_wiki, lang=language_code, family=parts[1], db=db_name, url='.'.join(
-            parts)
-    ))
-    summary = 'Creating {db_name} ({phab})'.format(
-        db_name=db_name, phab=task_tid)
-    add_text('On deploy1001:')
-    if shard != "s3":
-        add_text('`scap sync-file wmf-config/db-eqiad.php "{}"`'.format(summary))
-        add_text('`scap sync-file wmf-config/db-codfw.php "{}"`'.format(summary))
-    add_text('`scap sync-file dblists "{}"`'.format(summary))
-    add_text('`scap sync-wikiversions "{}"`'.format(summary))
-    if parts[1] == 'wikimedia':
-        add_text(
-            '`scap sync-file multiversion/MWMultiVersion.php "{}"`'.format(summary))
-    add_text('`scap sync-file static/images/project-logos/ "{}"`'.format(summary))
-    add_text('`scap sync-file wmf-config/InitialiseSettings.php "{}"`'.format(summary))
-    if parts[1] != 'wikimedia':
-        add_text('`scap sync-file langlist "{}"`'.format(summary))
-    add_text('`scap update-interwiki-cache`')
+    add_create_instructions(parts, shard, language_code, db_name, task_tid)
     add_text('\n**End of automatic output**')
-    old_report = re.findall(
-        r'(\n\n------\n\*\*Pre-install automatic checklist:\*\*.+?\n\*\*End of automatic output\*\*\n)',
-        task_details['description'], re.DOTALL)
-    if not old_report:
-        print('old report not found, appending')
-        client.setTaskDescription(
-            task_details['phid'], task_details['description'] + final_text)
-    else:
-        if old_report[0] != final_text:
-            print('Updating old report')
-            client.setTaskDescription(task_details['phid'],
-                                      task_details['description'].replace(old_report[0], final_text))
 
 
 def main():
     open_create_wikis_phid = 'PHID-PROJ-kmpu7gznmc2edea3qn2x'
-    for phid in client.getTasksWithProject(open_create_wikis_phid, statuses=['open']):
-        hande_task(phid)
+    for phid in client.getTasksWithProject(
+            open_create_wikis_phid, statuses=['open']):
+        task_details = client.taskDetails(phid)
+        hande_task(task_details)
+        update_task_report(task_details)
 
 
-main()
+if __name__ == "__main__":
+    main()
