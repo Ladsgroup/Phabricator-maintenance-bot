@@ -124,21 +124,7 @@ class AnalyticsPatchMaker(GerritBot):
             self.project,
             today.strftime("%Y-%m-%d 00:00:00")
         ))
+        projects = list(set(projects))
         projects.sort()
         with open('static_data/pageview/whitelist/whitelist.tsv', 'w') as f:
             f.write('\n'.join(projects) + '\n' + '\n'.join(non_projects))
-
-
-class CxPatchMakerTemp(GerritBot):
-    def __init__(self):
-        super().__init__(
-            'mediawiki/services/cxserver',
-            'Order entries by alphabetical order\n\nThis would make creating automated patches easier\n\nBug: T253439'
-        )
-
-    def changes(self):
-        with open('config/languages.yaml', 'r') as f:
-            lines = f.read().split('\n')[:-1]
-        lines.sort()
-        with open('config/languages.yaml', 'w') as f:
-            f.write('\n'.join(lines) + '\n')
