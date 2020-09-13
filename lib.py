@@ -92,6 +92,27 @@ class Client(object):
             }]
         })
 
+    def createParentTask(self, desc, project_phids, subtask_phid, title):
+        self.post('maniphest.edit', {
+            'objectIdentifier': '',
+            'transactions': [{
+                'type': 'subtasks.add',
+                'value': [subtask_phid]
+            },
+            {
+                'type': 'title',
+                'value': title
+            },
+            {
+                'type': 'description',
+                'value': desc,
+            },
+            {
+                'type': 'projects.add',
+                'value': project_phids
+            }]
+        })
+
     def taskDetails(self, phid):
         """Lookup details of a Maniphest task."""
         r = self.post('maniphest.query', {'phids': [phid]})
