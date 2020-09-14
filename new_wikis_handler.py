@@ -139,12 +139,12 @@ def post_a_comment(comment):
     pass
 
 
-def handle_subticket_for_cloud(task_details, db_name):
+def handle_subticket_for_cloud(task_details, db_name, wiki_status="unknown"):
     hasSubtasks = client.getTaskSubtasks(task_details['phid'])
     if hasSubtasks:
         return
 
-    client.createSubtask('The new wiki is going to be **public**.', [
+    client.createSubtask("The new wiki's visibility will be: **%s**." % wiki_status, [
         'PHID-PROJ-hwibeuyzizzy4xzunfsk',  # DBA
         'PHID-PROJ-bj6y6ks7ampcwcignhce'  # Data services
     ], task_details['phid'], 'Prepare and check storage layer for ' + db_name)
