@@ -85,6 +85,7 @@ def handle_cx(language_code, bug_id):
 
 
 def handle_analytics(url, bug_id):
+    return
     path = get_gerrit_path(
         'analytics/refinery',
         'static_data/pageview/whitelist/whitelist.tsv'
