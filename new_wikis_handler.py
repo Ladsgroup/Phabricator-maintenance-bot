@@ -102,7 +102,7 @@ def handle_analytics(url, bug_id):
     b = json.loads('\n'.join(r.text.split('\n')[1:]))
     if b:
         return
-    maker = AnalyticsPatchMaker(lang, bug_id)
+    maker = AnalyticsPatchMaker(url, bug_id)
     maker.run()
 
 
