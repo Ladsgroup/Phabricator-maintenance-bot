@@ -345,6 +345,10 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
             family=parts[1],
             db=db_name,
             url='.'.join(parts)))
+    add_text('`{search_path} --wiki={dbname} --cluster=all`'.format(
+        search_path='mwscript extensions/CirrusSearch/Maintenance/UpdateSearchIndexConfig.php',
+        dbname=db_name,
+    ))
     summary = 'Creating {db_name} ({phab})'.format(
         db_name=db_name, phab=task_tid)
     add_text('On deploy1001:')
