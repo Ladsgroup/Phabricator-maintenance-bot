@@ -54,13 +54,17 @@ def hostname_resolves(hostname):
     return True
 
 
-def handle_restbase(url):
+def handle_restbase(url, phid):
     path = get_gerrit_path(
         'mediawiki/services/restbase/deploy',
         'scap/vars.yaml'
     )
     restbase = get_file_from_gerrit(path)
     add_checklist(gerrit_path + path, 'RESTbase', url in restbase)
+    if url not in restbase:
+        print(client.getTaskParents(phid))
+        import sys
+        sys.exit()
 
 
 def handle_cx(language_code, bug_id):
@@ -80,7 +84,7 @@ def handle_cx(language_code, bug_id):
     b = json.loads('\n'.join(r.text.split('\n')[1:]))
     if b:
         return
-    maker = CxPatchMaker(lang, bug_id)
+    maker = CxPatchMaker(language_code, bug_id)
     maker.run()
 
 
@@ -139,7 +143,7 @@ def post_a_comment(comment):
     pass
 
 
-def handle_subticket_for_cloud(task_details, db_name, wiki_status="unknown"):
+def handle_subticket_for_cloud(task_details, db_name, wiki_status):
     hasSubtasks = client.getTaskSubtasks(task_details['phid'])
     if hasSubtasks:
         return
@@ -414,6 +418,7 @@ def hande_task(task_details):
         return
     db_name = get_db_name(wiki_spec, parts)
     shard = wiki_spec.get('Shard', 'TBD')
+    visibility = wiki_spec.get('Visibility', 'unknown')
     shardDecided = shard != "TBD"
     special = parts[1] == 'wikimedia'
 
@@ -424,7 +429,7 @@ def hande_task(task_details):
         add_text(' [] #DBA decided about the shard')
     dns = handle_dns(special, url, language_code, task_tid)
     if not special and wiki_spec.get('Special', '').lower() != 'yes':
-        handle_subticket_for_cloud(task_details, db_name)
+        handle_subticket_for_cloud(task_details, db_name, visibility)
     apache = handle_apache(special, parts)
     langdb = handle_langdb(language_code)
     core_lang = handle_core_lang(language_code)
@@ -439,14 +444,15 @@ def hande_task(task_details):
     else:
         add_text('**The creation is blocked until these part are all done.**')
 
-    add_text('\n-------\n**Post install automatic checklist:**')
-    handle_restbase(url)
-    handle_cx(language_code, task_tid)
-    handle_analytics('.'.join(parts[:2]), task_tid)
-    handle_pywikibot(parts[1], language_code)
-    handle_wikidata(db_name)
-    add_text(' [] Import from Incubator')
-    add_text(' [] Clean up old interwiki links')
+    if visibility.lower() != 'private':
+        add_text('\n-------\n**Post install automatic checklist:**')
+        handle_restbase(url, task_details['phid'])
+        handle_cx(language_code, task_tid)
+        handle_analytics('.'.join(parts[:2]), task_tid)
+        handle_pywikibot(parts[1], language_code)
+        handle_wikidata(db_name)
+        add_text(' [] Import from Incubator')
+        add_text(' [] Clean up old interwiki links')
     add_create_instructions(parts, shard, language_code, db_name, task_tid)
     add_text('\n**End of automatic output**')
 

@@ -186,3 +186,13 @@ class Client(object):
         }
         return self.post('maniphest.search', params)[
             'data']
+
+    def getTaskParents(self, phid):
+        params = {
+            "constraints": {
+                "phids": [phid],
+                "hasParents": True
+            }
+        }
+        return self.post('maniphest.search', params)[
+            'data']
