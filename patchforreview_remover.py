@@ -18,7 +18,7 @@ class Checker():
     def phid_check(self, phid):
         gerrit_bot_actions = []
         for transaction in self.client.getTransactions(phid):
-            if 'https://github.com/' in str(transaction):
+            if re.findall(re.escape('https://github.com/') + r'.+?/pull', str(transaction)):
                 return False
             if transaction['authorPHID'] == self.gerrit_bot_phid:
                 gerrit_bot_actions.append(transaction)
