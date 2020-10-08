@@ -54,17 +54,21 @@ def hostname_resolves(hostname):
     return True
 
 
-def handle_restbase(url, phid):
+def handle_restbase(url, phid, create_tickets, db_name):
     path = get_gerrit_path(
         'mediawiki/services/restbase/deploy',
         'scap/vars.yaml'
     )
     restbase = get_file_from_gerrit(path)
     add_checklist(gerrit_path + path, 'RESTbase', url in restbase)
-    if url not in restbase:
-        print(client.getTaskParents(phid))
-        import sys
-        sys.exit()
+    if url in restbase:
+        return
+    if create_tickets:
+        client.createParentTask(
+            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
+            ['PHID-PROJ-mszihytuo3ij3fcxcxgm'],
+            phid,
+            'Add {} to RESTBase'.format(db_name))
 
 
 def handle_cx(language_code, bug_id):
@@ -89,7 +93,6 @@ def handle_cx(language_code, bug_id):
 
 
 def handle_analytics(url, bug_id):
-    return
     path = get_gerrit_path(
         'analytics/refinery',
         'static_data/pageview/whitelist/whitelist.tsv'
@@ -110,7 +113,7 @@ def handle_analytics(url, bug_id):
     maker.run()
 
 
-def handle_pywikibot(family, language_code):
+def handle_pywikibot(family, language_code, create_tickets, db_name, phid):
     path = get_gerrit_path(
         'pywikibot/core',
         'pywikibot/families/{}_family.py'.format(family)
@@ -118,15 +121,27 @@ def handle_pywikibot(family, language_code):
     pywikibot = get_file_from_gerrit(path)
     add_checklist(gerrit_path + path, 'Pywikibot',
                   "'{}'".format(language_code) in pywikibot)
+    if create_tickets:
+        client.createParentTask(
+            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
+            ['PHID-PROJ-orw42whe2lepxc7gghdq'],
+            phid,
+            'Add support for {} to Pywikibot'.format(db_name))
 
 
-def handle_wikidata(db_name):
+def handle_wikidata(db_name, create_tickets, phid):
     url = 'https://www.wikidata.org/w/api.php'
     wikiata_help_page = requests.get(url, params={
         'action': 'help',
         'modules': 'wbgetentities'
     }).text
     add_checklist(url, 'Wikidata', db_name in wikiata_help_page)
+    if create_tickets:
+        client.createParentTask(
+            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
+            ['PHID-PROJ-egbmgxclscgwu2rbnotm', 'PHID-PROJ-7ocjej2gottz7cikkdc6'],
+            phid,
+            'Add Wikidata support for {}'.format(db_name))
 
 
 def handle_special_wiki_apache(parts):
@@ -189,8 +204,11 @@ def handle_dns(special, url, language_code, task_tid):
         'templates/helpers/langlist.tmpl')
     dns_url = gerrit_path + dns_path
     dns = hostname_resolves(url)
+    print(url)
     if not dns:
+        print('dns not found')
         if not special:
+            print('not special')
             create_patch_for_dns(language_code, task_tid)
     add_checklist(dns_url, 'DNS', dns)
     return dns
@@ -203,7 +221,7 @@ def handle_apache(special, parts):
 
     file_path = 'modules/mediawiki/manifests/web/prod_sites.pp'
     apache_url = gerrit_path + \
-        'operations/puppet/+/production/' + file_path
+                 'operations/puppet/+/production/' + file_path
     if not handle_special_wiki_apache(parts):
         apache = False
     else:
@@ -246,7 +264,7 @@ def handle_wikimedia_messages_one(
     add_checklist(gerrit_path + path,
                   'Wikimedia messages configuration', wikimedia_messages_one)
     url = 'https://en.wikipedia.org/wiki/' + \
-        'MediaWiki:Project-localized-name-' + db_name
+          'MediaWiki:Project-localized-name-' + db_name
     r = requests.get(url)
     if 'Wikipedia does not have a' not in r.text:
         wikimedia_messages_one_deployed = True
@@ -278,7 +296,7 @@ def handle_wikimedia_messages_two(db_name, parts):
         config,
         wikimedia_messages_two)
     url = 'https://en.wikipedia.org/wiki/' + \
-        'MediaWiki:Search-interwiki-results-' + db_name
+          'MediaWiki:Search-interwiki-results-' + db_name
     r = requests.get(url)
     if 'Wikipedia does not have a' not in r.text:
         wikimedia_messages_two_deployed = True
@@ -401,7 +419,7 @@ def hande_task(task_details):
     # Extract wiki config
     wiki_spec = {}
     for case in re.findall(
-        r'\n- *?\*\*(.+?):\*\* *?(.+)',
+            r'\n- *?\*\*(.+?):\*\* *?(.+)',
             task_details['description']):
         wiki_spec[case[0].strip()] = case[1].strip()
     language_code = wiki_spec.get('Language code')
@@ -446,11 +464,12 @@ def hande_task(task_details):
 
     if visibility.lower() != 'private':
         add_text('\n-------\n**Post install automatic checklist:**')
-        handle_restbase(url, task_details['phid'])
+        create_tickets = client.getTaskParents(task_details['phid'])
+        handle_restbase(url, task_details['phid'], not create_tickets, db_name)
         handle_cx(language_code, task_tid)
         handle_analytics('.'.join(parts[:2]), task_tid)
-        handle_pywikibot(parts[1], language_code)
-        handle_wikidata(db_name)
+        handle_pywikibot(parts[1], language_code, not create_tickets, db_name, task_details['phid'])
+        handle_wikidata(db_name, not create_tickets, task_details['phid'])
         add_text(' [] Import from Incubator')
         add_text(' [] Clean up old interwiki links')
     add_create_instructions(parts, shard, language_code, db_name, task_tid)
