@@ -472,6 +472,7 @@ def hande_task(task_details):
         handle_wikidata(db_name, not create_tickets, task_details['phid'])
         add_text(' [] Import from Incubator')
         add_text(' [] Clean up old interwiki links')
+        add_text(' [] Propose the implementation of the standard bot policy')
     add_create_instructions(parts, shard, language_code, db_name, task_tid)
     add_text('\n**End of automatic output**')
 
