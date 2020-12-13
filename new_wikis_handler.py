@@ -473,6 +473,7 @@ def hande_task(task_details):
         add_text(' [] Import from Incubator')
         add_text(' [] Clean up old interwiki links')
         add_text(' [] Propose the implementation of the standard bot policy')
+        add_text(' [] Inform the [[ https://meta.wikimedia.org/wiki/Talk:Countervandalism_Network | CVN ]] project for IRC monitoring')
     add_create_instructions(parts, shard, language_code, db_name, task_tid)
     add_text('\n**End of automatic output**')
 
