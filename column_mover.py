@@ -69,10 +69,6 @@ work = [{'from': ['incoming'],
          'project': 'User-RhinosF1',
          'to': 'Done',
          'status': ['Resolved']},
-        {'from': ['Backlog'],
-         'project': 'user-urbanecm',
-         'to': 'Waiting on review',
-         'projects': ['patch-for-review']},
         ]
 for case in work:
     gen = client.getTasksWithProject(client.lookupPhid('#' + case['project']))
