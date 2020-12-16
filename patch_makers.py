@@ -24,7 +24,7 @@ class WikimediaMessagesPatchMaker(GerritBot):
 
         file_ = 'i18n/wikimediaprojectnames/qqq.json'
         result = self._read_json(file_)
-        result['project-localized-name-' + self.db_name] = '{{ProjectNameDocumentation|url=' + \
+        result['project-localized-name-' + self.db_name] = '{{ProjectNameDocumentation|url=https://' + \
             self.wiki_url + '|name=' + self.english_name + \
             '|language=' + self.wiki_lang + '}}'
         self._write_json(file_, result)
