@@ -168,6 +168,15 @@ def handle_subticket_for_cloud(task_details, db_name, wiki_status):
         'PHID-PROJ-bj6y6ks7ampcwcignhce'  # Data services
     ], task_details['phid'], 'Prepare and check storage layer for ' + db_name)
 
+def handle_subticket_for_wikistats(task_details, db_name):
+    hasSubtasks = client.getTaskSubtasks(task_details['phid'])
+    if hasSubtasks:
+        return
+
+    client.createSubtask("Please add new wiki `%s` to Wikistats, once it is created. Thanks!" % db_name, [
+        'PHID-PROJ-6sht6g4xpdii4c4bga2i' # VPS-project-Wikistats
+    ], task_details['phid'], 'Add %s to wikistats' % db_name)
+
 
 def get_dummy_wiki(shard, family):
     if family == "wiktionary":
@@ -448,6 +457,7 @@ def hande_task(task_details):
     dns = handle_dns(special, url, language_code, task_tid)
     if not special and wiki_spec.get('Special', '').lower() != 'yes':
         handle_subticket_for_cloud(task_details, db_name, visibility)
+        handle_subticket_for_wikistats(task_details, db_name)
     apache = handle_apache(special, parts)
     langdb = handle_langdb(language_code)
     core_lang = handle_core_lang(language_code)
