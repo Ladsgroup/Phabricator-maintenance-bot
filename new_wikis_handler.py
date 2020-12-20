@@ -169,7 +169,7 @@ def handle_subticket_for_cloud(task_details, db_name, wiki_status):
     ], task_details['phid'], 'Prepare and check storage layer for ' + db_name)
 
 def handle_ticket_for_wikistats(task_details, db_name):
-    client.createSubtask("Please add new wiki `%s` to Wikistats, once it is created. Thanks!" % db_name, [
+    client.createParentTask("Please add new wiki `%s` to Wikistats, once it is created. Thanks!" % db_name, [
         'PHID-PROJ-6sht6g4xpdii4c4bga2i' # VPS-project-Wikistats
     ], task_details['phid'], 'Add %s to wikistats' % db_name)
 
@@ -475,7 +475,8 @@ def hande_task(task_details):
         handle_analytics('.'.join(parts[:2]), task_tid)
         handle_pywikibot(parts[1], language_code, not create_tickets, db_name, task_details['phid'])
         handle_wikidata(db_name, not create_tickets, task_details['phid'])
-        handle_ticket_for_wikistats(task_details, db_name)
+        if not create_tickets:
+            handle_ticket_for_wikistats(task_details, db_name)
         add_text(' [] Import from Incubator')
         add_text(' [] Clean up old interwiki links')
         add_text(' [] Propose the implementation of the standard bot policy')
