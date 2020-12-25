@@ -71,6 +71,15 @@ class Client(object):
             }]
         })
 
+    def addTaskProject(self, task_phid, project_phid):
+        self.post('maniphest.edit', {
+            'objectIdentifier': task_phid,
+            'transactions': [{
+                'type': 'projects.add',
+                'value': [project_phid],
+            }]
+        })
+
     def createSubtask(self, desc, project_phids, parent_phid, title):
         self.post('maniphest.edit', {
             'objectIdentifier': '',
