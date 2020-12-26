@@ -74,7 +74,7 @@ rules = [
             # 'NewUsersList', archived project
             'PictureGame',
             # 'RandomUsersWithAvatars', archived project
-            'Video (non-WMF)',
+            'video_non-wmf',
             # 'TopLists', archived project
         ],
     },
