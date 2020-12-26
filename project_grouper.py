@@ -6,10 +6,106 @@ from lib import Client
 
 rules = [
     {
-        # current H175 - see T136921
+        # H175 - see T136921
         'add': 'Design',
         'in': ['WMF-Design', 'WMDE-Design'],
     },
+    {
+        # H232
+        'add': 'artificial-intelligence',
+        'in': ['editquality-modeling', 'draftquality-modeling', 'articlequality-modeling', 'revscoring'],
+    },
+    {
+        # H193 - see T146701
+        'add': 'accessibility',
+        'in': ['ios-app-feature-accessibility'],
+    },
+    {
+        # H174
+        'add': 'upstream',
+        'in': ['phabricator-upstream'],
+    },
+    {
+        # H24 - see T86536
+        'add': 'universallanguageselector',
+        'in': ['uls-compactlinks'],
+    },
+    {
+        # H15 - note that #producrement tasks are private -> rule can't be disabled
+        'add': 'Operations',
+        'in': [
+            'ops-eqiad',
+            'ops-codfw',
+            'ops-esams',
+            'ops-ulsfo',
+            # 'hardware-requests', archived project
+            'SRE-Access-Requests',
+            'netops',
+            'vm-requests',
+            'Traffic',
+            'ops-eqord',
+            'ops-eqdfw',
+            # 'procurement', always in S4
+            'ops-eqsin',
+            'DNS',
+            'LDAP-Access-Requests',
+            'Wikimedia-Mailing-lists',
+        ],
+    },
+    {
+        # H14 - see T85596
+        'add': 'Social-Tools',
+        'in': [
+            'BlogPage',
+            'Comments',
+            'FanBoxes',
+            'LinkFilter',
+            'PollNY',
+            'QuizGame',
+            # 'RandomFeaturedUser', archived project
+            'RandomGameUnit',
+            'SocialProfile',
+            'SiteMetrics',
+            'VoteNY',
+            'WikiForum',
+            'WikiTextLoggedInOut',
+            'Challenge',
+            'MiniInvite',
+            # 'NewUsersList', archived project
+            'PictureGame',
+            # 'RandomUsersWithAvatars', archived project
+            'Video (non-WMF)',
+            # 'TopLists', archived project
+        ],
+    },
+    {
+        # H10 - see T76954
+        'add': 'VisualEditor',
+        'in': [
+            'VisualEditor-ContentEditable',
+            'VisualEditor-ContentLanguage',
+            'VisualEditor-CopyPaste',
+            'VisualEditor-DataModel',
+            'VisualEditor-EditingTools',
+            'VisualEditor-Initialisation',
+            'VisualEditor-InterfaceLanguage',
+            'VisualEditor-MediaWiki',
+            'VisualEditor-MediaWiki-Links',
+            'VisualEditor-MediaWiki-Media',
+            'VisualEditor-MediaWiki-Mobile',
+            'VisualEditor-MediaWiki-References',
+            'VisualEditor-MediaWiki-Templates',
+            'VisualEditor-Performance',
+            'VisualEditor-Tables',
+            'TemplateData',
+            'VisualEditor-MediaWiki-Plugins',
+            'VisualEditor-LanguageTool',
+            'VisualEditor-Links',
+            'VisualEditor-Media',
+            'VisualEditor-MediaWiki-2017WikitextEditor',
+            'VisualEditor-VisualDiffs',
+        ],
+    }
 ]
 
 client = Client.newFromCreds()
