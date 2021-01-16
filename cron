@@ -1,5 +1,5 @@
 15 * * * * jsub -once -N column_mover python3 /data/project/phabbot/phabbot/column_mover.py /data/project/phabbot/phabbot/creds.json 3600 >/dev/null 2>&1
-45 * * * * jsub -once -N column_mover python3 /data/project/phabbot/phabbot/project_grouper.py /data/project/phabbot/phabbot/creds.json 3600 >/dev/null 2>&1
+45 * * * * jsub -once -N project_grouper python3 /data/project/phabbot/phabbot/project_grouper.py /data/project/phabbot/phabbot/creds.json 3600 >/dev/null 2>&1
 10 * * * * jsub -once -N patch_for_review python3 /data/project/phabbot/phabbot/patchforreview_remover.py /data/project/phabbot/phabbot/creds.json 3600 >/dev/null 2>&1
 5 * * * * jlocal bash /data/project/phabbot/phabbot/updater.sh >/dev/null 2>&1
 10 22,4,10,16 * * * jsub -once -N new_wikis_handler bash /data/project/phabbot/phabbot/new_wikis_handler.sh >/dev/null 2>&1
