@@ -387,6 +387,7 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
     if parts[1] == 'wikimedia':
         add_text(sync_file('multiversion/MWMultiVersion.php', summary))
     add_text(sync_file('static/images/project-logos/', summary))
+    add_text(sync_file('wmf-config/logos.php', summary))
     add_text(sync_file('wmf-config/InitialiseSettings.php', summary))
     if parts[1] != 'wikimedia':
         add_text(sync_file('langlist', summary))
