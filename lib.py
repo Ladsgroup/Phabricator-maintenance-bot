@@ -157,7 +157,7 @@ class Client(object):
             yield case['phid']
         if cursor.get('after'):
             for case in self.getTasksWithProject(
-                    project_phid, cursor['after']):
+                    project_phid, cursor['after'], statuses=statuses):
                 yield case
 
     def _getTasksWithProjectContinue(self, project_phid, continue_=None, statuses=None):
