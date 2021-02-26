@@ -52,7 +52,7 @@ class WikimediaMessagesPatchMaker(GerritBot):
     def _write_json(self, path, content):
         with open(path, 'w') as f:
             f.write(json.dumps(content, ensure_ascii=False,
-                               indent='\t', sort_keys=True))
+                               indent='\t', sort_keys=True) + '\n')
 
 
 class DnsPatchMaker(GerritBot):
