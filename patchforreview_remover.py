@@ -41,7 +41,7 @@ class Checker():
             gerrit_patch_id = re.findall(
                 r'https://gerrit(?:-test|)\.wikimedia\.org/r/.*(\d+)(?:$|\]\])', raw_comment)[0]
             merged = re.findall(
-                r'Change \d+ (?:\*\*merged\*\*|abandoned) by ',
+                r'Change \d+ \*\*(?:merged|abandoned)\*\* by ',
                 raw_comment)
 
             gerrit_patch_status[gerrit_patch_id].append(not(bool(merged)))
