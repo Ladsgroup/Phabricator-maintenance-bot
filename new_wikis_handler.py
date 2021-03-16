@@ -393,6 +393,8 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
         search_path='mwscript extensions/CirrusSearch/maintenance/UpdateSearchIndexConfig.php',
         dbname=db_name,
     ))
+
+    add_text('On deploy1001:')
     add_text('`scap update-interwiki-cache`')
 
 
