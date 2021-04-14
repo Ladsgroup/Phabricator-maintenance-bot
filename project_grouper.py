@@ -107,7 +107,6 @@ rules = [
         ],
     },
     {
-
         # T280119
         'add': 'observability',
         'in': [
