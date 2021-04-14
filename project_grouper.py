@@ -105,6 +105,16 @@ rules = [
             'VisualEditor-MediaWiki-2017WikitextEditor',
             'VisualEditor-VisualDiffs',
         ],
+    },
+    {
+
+        # T280119
+        'add': 'observability',
+        'in': [
+            'wikimedia-logstash',
+            'icinga',
+            'graphite',
+        ],
     }
 ]
 
