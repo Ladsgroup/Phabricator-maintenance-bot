@@ -114,6 +114,12 @@ rules = [
             'icinga',
             'graphite',
         ],
+    },
+    {
+        'add': 'user-urbanecm-wmf-engineering',
+        'in': [
+            'growth-deployments',
+        ]
     }
 ]
 
