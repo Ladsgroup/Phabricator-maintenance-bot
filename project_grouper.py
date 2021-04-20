@@ -4,6 +4,9 @@ Adds tasks in configured projects to other configured projects
 
 from lib import Client
 
+# To get it on a list run this on herald rule page
+# const items = document.getElementsByClassName('herald-list-item')[0].getElementsByClassName('phui-handle')
+# for (i in items) {console.log(items[i].text)};
 rules = [
     {
         # H175 - see T136921
@@ -120,6 +123,56 @@ rules = [
         'in': [
             'growth-deployments',
         ]
+    },
+    {
+        # H30
+        'add': 'wikidata',
+        'in': [
+            'Wikidata-Page-Banner',
+            'Wikibase-Quality-Constraints',
+            'DataValues',
+            'DataValues-JavaScript',
+            'MediaWiki-extensions-WikibaseClient',
+            'MediaWiki-extensions-WikibaseView',
+            'Wikibase-DataModel',
+            'Wikibase-DataModel-JavaScript',
+            'Wikibase-DataModel-Serialization',
+            'Wikibase-Internal-Serialization',
+            'Wikibase-JavaScript-Api',
+            'Wikibase-Serialization-JavaScript',
+            'Wikidata-Query-Service',
+            'Tool-Wikidata-Periodic-Table',
+            'Wikidata.org',
+            'DataTypes',
+            'MediaWiki-extensions-WikibaseRepository',
+            'SDC General',
+            'ValueView',
+            'Wikidata-Gadgets',
+            'ArticlePlaceholder',
+            'Wikidata Lexicographical data',
+            'Automated list generation',
+            'Wikidata Query UI',
+            'Wikibase-Containers',
+            'Soweego',
+            'Wikidata Mobile',
+            'Wikidata-Campsite',
+            'Wikibase-registry',
+            'wikiba.se website',
+            'Wikibase-Lua',
+            'MediaWiki-extensions-PropertySuggester',
+            'Wikidata-Campsite (Wikidata-Campsite-Iteration-∞)',
+            'RL Module Terminators Trailblazing',
+            'Wikidata-Bridge',
+            'Shape Expressions',
+            'Wikidata Tainted References',
+            'Wikidata Design System',
+            'Wikidata - Reference Treasure Hunt',
+            'Item Quality Scoring Improvement',
+            'Wikibase - Automated Configuration Detection (WikibaseManifest)',
+            'Wikidata Query Builder',
+            'Wikidata - Visualisation of Reliability Metrics'
+        ],
+        'once': True
     }
 ]
 
@@ -130,13 +183,26 @@ for rule in rules:
 
     wanted_project_phid = client.lookupPhid('#' + rule['add'])
     for project_name in rule['in']:
+        project_name = project_name.replace(' ', '_')
         project_phid = client.lookupPhid('#' + project_name)
         for task_phid in client.getTasksWithProject(project_phid):
             # if a task is in multiple 'in' projects, still only process it once
             if task_phid in handled_tasks:
                 continue
-            handled_tasks.append(task_phid)
-
             task = client.taskDetails(task_phid)
-            if wanted_project_phid not in task['projectPHIDs']:
-                client.addTaskProject(task_phid, wanted_project_phid)
+            if wanted_project_phid in task['projectPHIDs']:
+                continue
+            if rule.get('once') == True:
+                is_already_added = False
+                transactions = client.getTransactions(task_phid)
+                for transaction in transactions:
+                    operations = transaction.get(
+                        'fields', {}).get('operations', [])
+                    for operation in operations:
+                        if operation.get('operation') == 'add' and operation.get('phid') == wanted_project_phid:
+                            is_already_added = True
+                            break
+                if is_already_added == True:
+                    continue
+            handled_tasks.append(task_phid)
+            client.addTaskProject(task_phid, wanted_project_phid)
