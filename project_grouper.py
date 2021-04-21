@@ -173,7 +173,46 @@ rules = [
             'Wikidata - Visualisation of Reliability Metrics'
         ],
         'once': True
-    }
+    },
+    {
+        # H337
+        'add': 'Research',
+        'in': [
+            'address-knowledge-gaps',
+            'Research-foundational',
+            'Knowledge-Integrity',
+        ],
+        'once': True
+    },
+    {
+        # H314
+        'add': 'Pywikibot',
+        'in': [
+            'Pywikibot-archivebot.py',
+            'Pywikibot-category.py',
+            'Pywikibot-compat',
+            'Pywikibot-copyright.py',
+            'Pywikibot-delinker.py',
+            'Pywikibot-cosmetic-changes.py',
+            'Pywikibot-Documentation',
+            'Pywikibot-General',
+            'Pywikibot-i18n',
+            'Pywikibot-interwiki.py',
+            'Pywikibot-login.py',
+            'Pywikibot-network',
+            'Pywikibot-Scripts',
+            'Pywikibot-pagegenerators.py',
+            'Pywikibot-redirect.py',
+            'Pywikibot-replace.py',
+            'Pywikibot-solve-disambiguation.py',
+            'Pywikibot-tests',
+            'Pywikibot-textlib.py',
+            'Pywikibot-weblinkchecker.py',
+            'Pywikibot-Wikidata',
+            'Pywikibot-xmlreader.py',
+        ],
+        'once': True
+    },
 ]
 
 client = Client.newFromCreds()
