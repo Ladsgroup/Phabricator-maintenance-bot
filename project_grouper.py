@@ -213,6 +213,51 @@ rules = [
         ],
         'once': True
     },
+    {
+        # H285
+        'add': 'Product-Analytics',
+        'in': [
+            'Discovery-Analysis',
+        ],
+        'once': True
+    },
+    {
+        # H216
+        'add': 'WMDE-FUN-Team',
+        'in': [
+            'WMDE-Fundraising-Tech',
+        ],
+        'once': True
+    },
+    {
+        # H131
+        'add': 'Traffic',
+        'in': [
+            'HTTPS',
+            'DNS',
+            'Domains',
+        ],
+        'once': True
+    },
+    {
+        # H131
+        'add': 'Traffic',
+        'in': [
+            'HTTPS',
+            'DNS',
+            'Domains',
+        ],
+        'once': True
+    },
+    {
+        # H109
+        'add': 'Commons',
+        'in': [
+            'MediaWiki-File-management',
+            'MediaWiki-extensions-GWToolset',
+        ],
+        'once': True
+    },
 ]
 
 client = Client.newFromCreds()
