@@ -223,7 +223,10 @@ for rule in rules:
     wanted_project_phid = client.lookupPhid('#' + rule['add'])
     for project_name in rule['in']:
         project_name = project_name.replace(' ', '_')
-        project_phid = client.lookupPhid('#' + project_name)
+        try:
+            project_phid = client.lookupPhid('#' + project_name)
+        except:
+            continue
         for task_phid in client.getTasksWithProject(project_phid):
             # if a task is in multiple 'in' projects, still only process it once
             if task_phid in handled_tasks:
