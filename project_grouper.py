@@ -171,6 +171,7 @@ rules = [
             'Wikibase - Automated Configuration Detection (WikibaseManifest)',
             'Wikidata Query Builder',
             'Wikidata - Visualisation of Reliability Metrics'
+            'Item Quality Evaluator'
         ],
         'once': True
     },
