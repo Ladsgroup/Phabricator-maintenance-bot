@@ -172,6 +172,7 @@ rules = [
             'Wikidata Query Builder',
             'Wikidata - Visualisation of Reliability Metrics'
             'Item Quality Evaluator'
+            'wdwb-tech'
         ],
         'once': True
     },
