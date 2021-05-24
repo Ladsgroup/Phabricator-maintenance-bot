@@ -35,7 +35,7 @@ rules = [
     },
     {
         # H15 - note that #producrement tasks are private -> rule can't be disabled
-        'add': 'Operations',
+        'add': 'SRE',
         'in': [
             'ops-eqiad',
             'ops-codfw',
@@ -54,6 +54,7 @@ rules = [
             'LDAP-Access-Requests',
             'Wikimedia-Mailing-lists',
         ],
+        'once': True
     },
     {
         # H14 - see T85596
