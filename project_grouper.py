@@ -171,9 +171,9 @@ rules = [
             'Item Quality Scoring Improvement',
             'Wikibase - Automated Configuration Detection (WikibaseManifest)',
             'Wikidata Query Builder',
-            'Wikidata - Visualisation of Reliability Metrics'
-            'Item Quality Evaluator'
-            'wdwb-tech'
+            'Wikidata - Visualisation of Reliability Metrics',
+            'Item Quality Evaluator',
+            'wdwb-tech',
         ],
         'once': True
     },
