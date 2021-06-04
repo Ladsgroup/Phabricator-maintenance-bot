@@ -174,6 +174,7 @@ rules = [
             'Wikidata - Visualisation of Reliability Metrics',
             'Item Quality Evaluator',
             'wdwb-tech',
+            'Cognate',
         ],
         'once': True
     },
