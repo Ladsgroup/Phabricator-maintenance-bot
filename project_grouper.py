@@ -175,6 +175,7 @@ rules = [
             'Item Quality Evaluator',
             'wdwb-tech',
             'Cognate',
+            'Mismatch Finder',
         ],
         'once': True
     },
