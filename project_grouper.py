@@ -176,6 +176,7 @@ rules = [
             'wdwb-tech',
             'Cognate',
             'Mismatch Finder',
+            'Wikidata analytics',
         ],
         'once': True
     },
