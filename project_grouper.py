@@ -264,6 +264,17 @@ rules = [
         ],
         'once': True
     },
+    {
+        # Keep all Abstract Wikipedia work on the team board
+        'add': 'abstract_wikipedia',
+        'in': [
+            'abstract_wikipedia_ux',
+            'wikilambda',
+            'function-evaluator',
+            'function-orchestrator',
+            'function-schemata',
+        ],
+    },
 ]
 
 client = Client.newFromCreds()
