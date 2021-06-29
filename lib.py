@@ -45,6 +45,11 @@ class Client(object):
                 raise Exception('No object found for %s' % label)
         return self.phid_cache[label]
 
+    def getSubprojects(self, phid):
+        """Lookup information on a Phab object by name."""
+        r = self.post('project.search', {'constraints': {'isMilestone': True, 'ancestors': [phid]}})
+        return [i['phid'] for i in r['data']]
+
     def getColumns(self, project_phid):
         if not self.column_cache.get(project_phid):
             self.column_cache[project_phid] = self.post(

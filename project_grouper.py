@@ -282,7 +282,8 @@ client = Client.newFromCreds()
 for rule in rules:
     handled_tasks = []
 
-    wanted_project_phid = client.lookupPhid('#' + rule['add'])
+    wanted_project_phid = client.lookupPhid('#' + rule['add'].replace(' ', '_'))
+    subprojects = set(client.getSubprojects(wanted_project_phid) + [wanted_project_phid])
     for project_name in rule['in']:
         project_name = project_name.replace(' ', '_')
         try:
@@ -294,7 +295,7 @@ for rule in rules:
             if task_phid in handled_tasks:
                 continue
             task = client.taskDetails(task_phid)
-            if wanted_project_phid in task['projectPHIDs']:
+            if subprojects.intersection(set(task['projectPHIDs'])):
                 continue
             if rule.get('once') == True:
                 is_already_added = False
