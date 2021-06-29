@@ -269,6 +269,7 @@ rules = [
         'add': 'abstract_wikipedia',
         'in': [
             'abstract_wikipedia_ux',
+            'wikilambda',
             'function-evaluator',
             'function-orchestrator',
             'function-schemata',
