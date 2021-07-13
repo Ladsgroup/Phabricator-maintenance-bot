@@ -112,7 +112,7 @@ rules = [
     },
     {
         # T280119
-        'add': 'observability',
+        'add': 'sre-observability',
         'in': [
             'wikimedia-logstash',
             'icinga',
