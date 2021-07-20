@@ -356,7 +356,7 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
     add_text('\n-------')
     add_text('**Step by step commands**:')
     dummy_wiki = get_dummy_wiki(shard, parts[1])
-    add_text('On deploy1001:')
+    add_text('On deploy1002:')
     add_text('`cd /srv/mediawiki-staging/`')
     add_text('`git fetch`')
     add_text('`git log -p HEAD..@{u}`')
@@ -374,7 +374,7 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
             url='.'.join(parts)))
     summary = 'Creating {db_name} ({phab})'.format(
         db_name=db_name, phab=task_tid)
-    add_text('On deploy1001:')
+    add_text('On deploy1002:')
     if shard != "s3":
         add_text(sync_file('wmf-config/db-eqiad.php', summary))
         add_text(sync_file('wmf-config/db-codfw.php', summary))
@@ -394,7 +394,7 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
         dbname=db_name,
     ))
 
-    add_text('On deploy1001:')
+    add_text('On deploy1002:')
     add_text('`scap update-interwiki-cache`')
 
 
