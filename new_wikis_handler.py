@@ -14,17 +14,11 @@ gerrit_path = 'https://gerrit.wikimedia.org/g/'
 client = Client.newFromCreds()
 
 
-def add_text(a):
-    global final_text
-    final_text += a + '\n'
-
-
-def add_checklist(url, text, checked):
+def get_checklist_text(url, text, checked):
     if checked:
-        add_text(' [x] [[{}|{}]]'.format(url, text))
+        return ' [x] [[{}|{}]]'.format(url, text)
     else:
-        add_text(' [] [[{}|{}]]'.format(url, text))
-
+        return ' [] [[{}|{}]]'.format(url, text)
 
 def get_file_from_gerrit(path):
     gerrit_url = 'https://gerrit.wikimedia.org/g/'
@@ -46,102 +40,175 @@ def get_github_url(repo, filename):
     )
 
 
+class PostCreationHandler(object):
+    def __init__(self, phid, db_name, url, language_code, parts):
+        self.main_pid = phid
+        self.db_name = db_name
+        self.url = url
+        self.parts = parts
+        self.language_code = language_code
+        self.post_ticket_bug_id = ''
+        self.post_ticket_text = ''
+        self.checkers = [
+            self._check_restbase,
+            self._check_cx,
+            self._check_analytics,
+            self._check_pywikibot,
+            self._check_wikidata,
+        ]
+        self.handlers = [
+            self._handle_restbase,
+            self._handle_cx,
+            self._handle_analytics,
+            self._handle_pywikibot,
+            self._handle_wikidata,
+            self._handle_wikistats,
+        ]
+        self.handlers_needed = {}
+
+    def handle(self):
+        for checker in self.checkers:
+            checker()
+        self.add_text(' [] Import from Incubator')
+        self.add_text(' [] Clean up old interwiki links')
+        self.add_text(' [] Propose the implementation of the standard bot policy')
+        self.add_text(' [] Inform the [[ https://meta.wikimedia.org/wiki/Talk:Countervandalism_Network | CVN ]] project for IRC monitoring')
+
+        self._create_ticket()
+        for handler in self.handlers:
+            handler()
+
+    def add_text(self, a):
+        self.post_ticket_text += a + '\n'
+
+    def add_checklist(self, url, text, checked):
+        self.add_text(get_checklist_text(url, text, checked))
+
+    def _create_ticket(self):
+        result = client.createParentTask(
+            self.post_ticket_text,
+            ['PHID-PROJ-2fuv7mxzjnpjfuojdnfd'],
+            self.main_pid,
+            'Post-creation work for {}'.format(self.db_name))['object']
+        self.post_ticket_phid = result['phid']
+        self.post_ticket_bug_id = 'T' + result['id']
+
+    def _check_restbase(self):
+        path = get_gerrit_path(
+            'mediawiki/services/restbase/deploy',
+            'scap/vars.yaml'
+        )
+        restbase = get_file_from_gerrit(path)
+        self.add_checklist(gerrit_path + path, 'RESTbase', self.url in restbase)
+        if self.url in restbase:
+            self.handlers_needed['restbase'] = False
+
+    def _handle_restbase(self):
+        if not self.handlers_needed['restbase']:
+            return
+        client.createSubtask(
+            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
+            ['PHID-PROJ-mszihytuo3ij3fcxcxgm'],
+            self.post_ticket_phid,
+            'Add {} to RESTBase'.format(self.db_name))
+
+    def _check_cx(self):
+        path = get_gerrit_path(
+            'mediawiki/services/cxserver',
+            'config/languages.yaml'
+        )
+        cxconfig = get_file_from_gerrit(path)
+        cx = '\n- ' + self.language_code in cxconfig
+        self.add_checklist(gerrit_path + path, 'CX Config', cx)
+        self.handlers_needed['cx'] = not cx
+
+    def _handle_cx(self):
+        if not self.handlers_needed['cx']:
+            return
+        r = requests.get(
+            'https://gerrit.wikimedia.org/r/changes/'
+            '?q=bug:{}+project:mediawiki/services/cxserver'.format(self.post_ticket_bug_id))
+        b = json.loads('\n'.join(r.text.split('\n')[1:]))
+        if b:
+            return
+        maker = CxPatchMaker(self.language_code, self.post_ticket_bug_id)
+        maker.run()
+
+    def _check_analytics(self):
+        path = get_gerrit_path(
+            'analytics/refinery',
+            'static_data/pageview/whitelist/whitelist.tsv'
+        )
+        url = '.'.join(self.parts[:2])
+        refinery_whitelist = get_file_from_gerrit(path)
+        self.add_checklist(gerrit_path + path, 'Analytics refinery',
+                           url in refinery_whitelist)
+        self.handlers_needed['analytics'] = url not in refinery_whitelist
+
+    def _handle_analytics(self):
+        if not self.handlers_needed['analytics']:
+            return
+        url = '.'.join(self.parts[:2])
+        r = requests.get(
+            'https://gerrit.wikimedia.org/r/changes/'
+            '?q=bug:{}+project:analytics/refinery'.format(self.post_ticket_bug_id))
+        b = json.loads('\n'.join(r.text.split('\n')[1:]))
+        if b:
+            return
+        maker = AnalyticsPatchMaker(url, self.post_ticket_bug_id)
+        maker.run()
+
+    def _check_pywikibot(self):
+        path = get_gerrit_path(
+            'pywikibot/core',
+            'pywikibot/families/{}_family.py'.format(self.parts[1])
+        )
+        pywikibot = get_file_from_gerrit(path)
+        self.add_checklist(gerrit_path + path, 'Pywikibot',
+                           "'{}'".format(self.language_code) in pywikibot)
+
+    def _handle_pywikibot(self):
+        client.createSubtask(
+            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
+            ['PHID-PROJ-orw42whe2lepxc7gghdq'],
+            self.post_ticket_phid,
+            'Add support for {} to Pywikibot'.format(self.db_name))
+
+    def _check_wikidata(self):
+        url = 'https://www.wikidata.org/w/api.php'
+        wikiata_help_page = requests.get(url, params={
+            'action': 'help',
+            'modules': 'wbgetentities'
+        }).text
+        self.add_checklist(url, 'Wikidata', self.db_name in wikiata_help_page)
+
+    def _handle_wikidata(self):
+        client.createSubtask(
+            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
+            ['PHID-PROJ-egbmgxclscgwu2rbnotm', 'PHID-PROJ-7ocjej2gottz7cikkdc6'],
+            self.post_ticket_phid,
+            'Add Wikidata support for {}'.format(self.db_name))
+
+    def _handle_wikistats(self):
+        client.createSubtask("Please add new wiki `%s` to Wikistats, once it is created. Thanks!" % self.db_name, [
+            'PHID-PROJ-6sht6g4xpdii4c4bga2i' # VPS-project-Wikistats
+        ], self.post_ticket_phid, 'Add %s to wikistats' % self.db_name)
+
+
+def add_text(a):
+    global final_text
+    final_text += a + '\n'
+
+def add_checklist(url, text, checked):
+    add_text(get_checklist_text(url, text, checked))
+
+
 def hostname_resolves(hostname):
     try:
         socket.gethostbyname(hostname)
     except socket.error:
         return False
     return True
-
-
-def handle_restbase(url, phid, create_tickets, db_name):
-    path = get_gerrit_path(
-        'mediawiki/services/restbase/deploy',
-        'scap/vars.yaml'
-    )
-    restbase = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'RESTbase', url in restbase)
-    if url in restbase:
-        return
-    if create_tickets:
-        client.createParentTask(
-            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
-            ['PHID-PROJ-mszihytuo3ij3fcxcxgm'],
-            phid,
-            'Add {} to RESTBase'.format(db_name))
-
-
-def handle_cx(language_code, bug_id):
-    path = get_gerrit_path(
-        'mediawiki/services/cxserver',
-        'config/languages.yaml'
-    )
-    cxconfig = get_file_from_gerrit(path)
-    cx = '\n- ' + language_code in cxconfig
-    add_checklist(gerrit_path + path, 'CX Config', cx)
-    if cx:
-        return
-
-    r = requests.get(
-        'https://gerrit.wikimedia.org/r/changes/'
-        '?q=bug:{}+project:mediawiki/services/cxserver'.format(bug_id))
-    b = json.loads('\n'.join(r.text.split('\n')[1:]))
-    if b:
-        return
-    maker = CxPatchMaker(language_code, bug_id)
-    maker.run()
-
-
-def handle_analytics(url, bug_id):
-    path = get_gerrit_path(
-        'analytics/refinery',
-        'static_data/pageview/whitelist/whitelist.tsv'
-    )
-    refinery_whitelist = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'Analytics refinery',
-                  url in refinery_whitelist)
-    if url in refinery_whitelist:
-        return
-
-    r = requests.get(
-        'https://gerrit.wikimedia.org/r/changes/'
-        '?q=bug:{}+project:analytics/refinery'.format(bug_id))
-    b = json.loads('\n'.join(r.text.split('\n')[1:]))
-    if b:
-        return
-    maker = AnalyticsPatchMaker(url, bug_id)
-    maker.run()
-
-
-def handle_pywikibot(family, language_code, create_tickets, db_name, phid):
-    path = get_gerrit_path(
-        'pywikibot/core',
-        'pywikibot/families/{}_family.py'.format(family)
-    )
-    pywikibot = get_file_from_gerrit(path)
-    add_checklist(gerrit_path + path, 'Pywikibot',
-                  "'{}'".format(language_code) in pywikibot)
-    if create_tickets:
-        client.createParentTask(
-            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
-            ['PHID-PROJ-orw42whe2lepxc7gghdq'],
-            phid,
-            'Add support for {} to Pywikibot'.format(db_name))
-
-
-def handle_wikidata(db_name, create_tickets, phid):
-    url = 'https://www.wikidata.org/w/api.php'
-    wikiata_help_page = requests.get(url, params={
-        'action': 'help',
-        'modules': 'wbgetentities'
-    }).text
-    add_checklist(url, 'Wikidata', db_name in wikiata_help_page)
-    if create_tickets:
-        client.createParentTask(
-            'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
-            ['PHID-PROJ-egbmgxclscgwu2rbnotm', 'PHID-PROJ-7ocjej2gottz7cikkdc6'],
-            phid,
-            'Add Wikidata support for {}'.format(db_name))
 
 
 def handle_special_wiki_apache(parts):
@@ -472,20 +539,10 @@ def hande_task(task_details):
     else:
         add_text('**The creation is blocked until these part are all done.**')
 
-    if visibility.lower() != 'private':
-        add_text('\n-------\n**Post install automatic checklist:**')
-        create_tickets = client.getTaskParents(task_details['phid'])
-        handle_restbase(url, task_details['phid'], not create_tickets, db_name)
-        handle_cx(language_code, task_tid)
-        handle_analytics('.'.join(parts[:2]), task_tid)
-        handle_pywikibot(parts[1], language_code, not create_tickets, db_name, task_details['phid'])
-        handle_wikidata(db_name, not create_tickets, task_details['phid'])
-        if not create_tickets:
-            handle_ticket_for_wikistats(task_details, db_name)
-        add_text(' [] Import from Incubator')
-        add_text(' [] Clean up old interwiki links')
-        add_text(' [] Propose the implementation of the standard bot policy')
-        add_text(' [] Inform the [[ https://meta.wikimedia.org/wiki/Talk:Countervandalism_Network | CVN ]] project for IRC monitoring')
+    if visibility.lower() != 'private' and not client.getTaskParents(task_details['phid']):
+        handler = PostCreationHandler(task_details['phid'], db_name, url, language_code, parts)
+        handler.handle()
+
     add_create_instructions(parts, shard, language_code, db_name, task_tid)
     add_text('\n**End of automatic output**')
 

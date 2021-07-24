@@ -107,7 +107,7 @@ class Client(object):
         })
 
     def createParentTask(self, desc, project_phids, subtask_phid, title):
-        self.post('maniphest.edit', {
+        return self.post('maniphest.edit', {
             'objectIdentifier': '',
             'transactions': [{
                 'type': 'subtasks.add',
