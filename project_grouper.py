@@ -177,6 +177,7 @@ rules = [
             'Cognate',
             'Mismatch Finder',
             'Wikidata analytics',
+            'Wikidata-Termbox',
         ],
         'once': True
     },
