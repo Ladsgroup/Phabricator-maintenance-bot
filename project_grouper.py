@@ -111,15 +111,6 @@ rules = [
         ],
     },
     {
-        # T280119
-        'add': 'sre-observability',
-        'in': [
-            'wikimedia-logstash',
-            'icinga',
-            'graphite',
-        ],
-    },
-    {
         'add': 'user-urbanecm-wmf-engineering',
         'in': [
             'growth-deployments',
