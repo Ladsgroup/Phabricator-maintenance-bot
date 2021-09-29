@@ -91,7 +91,7 @@ class PostCreationHandler(object):
             self.main_pid,
             'Post-creation work for {}'.format(self.db_name))['object']
         self.post_ticket_phid = result['phid']
-        self.post_ticket_bug_id = 'T' + result['id']
+        self.post_ticket_bug_id = 'T' + str(result['id'])
 
     def _check_restbase(self):
         path = get_gerrit_path(
