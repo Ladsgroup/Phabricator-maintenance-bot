@@ -267,6 +267,15 @@ rules = [
             'function-schemata',
         ],
     },
+    {
+        # https://phabricator.wikimedia.org/T295397
+        'add': 'Data-Engineering',
+        'in': [
+            'Event-Platform',
+            'Analytics-Wikistats',
+        ],
+        'once': True
+    },
 ]
 
 client = Client.newFromCreds()
