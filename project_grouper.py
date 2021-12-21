@@ -173,6 +173,13 @@ rules = [
         'once': True
     },
     {
+        'add': 'Wikidata Lexicographical data',
+        'in': [
+            'Special:NewLexeme revival',
+        ],
+        'once': True
+    },
+    {
         # H337
         'add': 'Research',
         'in': [
