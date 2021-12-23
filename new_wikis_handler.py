@@ -443,8 +443,7 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
         db_name=db_name, phab=task_tid)
     add_text('On deploy1001:')
     if shard != "s3":
-        add_text(sync_file('wmf-config/db-eqiad.php', summary))
-        add_text(sync_file('wmf-config/db-codfw.php', summary))
+        add_text(sync_file('wmf-config/db-production.php', summary))
     add_text(sync_file('dblists', summary))
     add_text('`scap sync-wikiversions "{}"`'.format(summary))
     if parts[1] == 'wikimedia':
