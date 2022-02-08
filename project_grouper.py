@@ -169,6 +169,7 @@ rules = [
             'Mismatch Finder',
             'Wikidata analytics',
             'Wikidata-Termbox',
+            'Special:NewLexeme revival',
         ],
         'once': True
     },
