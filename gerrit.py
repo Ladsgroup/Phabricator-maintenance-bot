@@ -93,9 +93,10 @@ class ShellMixin:
             # If we're not automerging, vote V+1 to trigger jenkins (T254070)
         if options.get('message'):
             per += ',m=' + urllib.parse.quote_plus(options['message'])
+        branch = options.get('branch', 'master')
         return ['git', 'push',
                 gerrit_url(options['repo'], creds['name'], ssh=True),
-                'HEAD:refs/for/master' + per]
+                'HEAD:refs/for/' + branch + per]
 
 
 class GerritBot(ShellMixin):
