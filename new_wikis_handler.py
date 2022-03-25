@@ -176,11 +176,11 @@ class PostCreationHandler(object):
 
     def _check_wikidata(self):
         url = 'https://www.wikidata.org/w/api.php'
-        wikiata_help_page = requests.get(url, params={
+        wikidata_help_page = requests.get(url, params={
             'action': 'help',
             'modules': 'wbgetentities'
         }).text
-        self.add_checklist(url, 'Wikidata', self.db_name in wikiata_help_page)
+        self.add_checklist(url, 'Wikidata', self.db_name in wikidata_help_page)
 
     def _handle_wikidata(self):
         client.createSubtask(
