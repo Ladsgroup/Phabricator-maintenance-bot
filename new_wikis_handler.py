@@ -100,8 +100,7 @@ class PostCreationHandler(object):
         )
         restbase = get_file_from_gerrit(path)
         self.add_checklist(gerrit_path + path, 'RESTbase', self.url in restbase)
-        if self.url in restbase:
-            self.handlers_needed['restbase'] = False
+        self.handlers_needed['restbase'] = self.url not in restbase
 
     def _handle_restbase(self):
         if not self.handlers_needed['restbase']:
@@ -166,8 +165,11 @@ class PostCreationHandler(object):
         pywikibot = get_file_from_gerrit(path)
         self.add_checklist(gerrit_path + path, 'Pywikibot',
                            "'{}'".format(self.language_code) in pywikibot)
+        self.handlers_needed['pywikibot'] = "'{}'".format(self.language_code) not in pywikibot
 
     def _handle_pywikibot(self):
+        if not self.handlers_needed['pywikibot']:
+            return
         client.createSubtask(
             'Per https://wikitech.wikimedia.org/wiki/Add_a_wiki once the wiki has been created',
             ['PHID-PROJ-orw42whe2lepxc7gghdq'],
