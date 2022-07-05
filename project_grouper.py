@@ -170,6 +170,7 @@ rules = [
             'Wikidata analytics',
             'Wikidata-Termbox',
             'Special:NewLexeme revival',
+            'Wikidata Dev Team',
         ],
         'once': True
     },
