@@ -171,6 +171,7 @@ rules = [
             'Wikidata-Termbox',
             'Special:NewLexeme revival',
             'Wikidata Dev Team',
+            'Wikidata data quality and trust',
         ],
         'once': True
     },
