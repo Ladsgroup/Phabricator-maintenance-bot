@@ -286,6 +286,12 @@ rules = [
         ],
         'once': True
     },
+    {
+        'add': 'growthexperiments-mentorship',
+        'in': [
+            'growthexperiments-mentordashboard'
+        ],
+    },
 ]
 
 client = Client.newFromCreds()
