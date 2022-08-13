@@ -1,6 +1,7 @@
 import json
 import sys
 import time
+import os
 
 import requests
 
@@ -19,7 +20,8 @@ class Client(object):
 
     @classmethod
     def newFromCreds(cls):
-        with open(sys.argv[1], 'r') as f:
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'creds.json'), 'r') as f:
             creds = json.loads(f.read())
         return cls(*creds)
 
