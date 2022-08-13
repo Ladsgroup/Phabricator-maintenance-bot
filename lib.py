@@ -152,6 +152,21 @@ class Client(object):
             }]
         })
 
+    def changeProjectByPhid(self, task_phid, old_project_phid, new_project_phid):
+        return self.post('maniphest.edit', {
+            'objectIdentifier': task_phid,
+            'transactions': [{
+                'type': 'projects.remove',
+                'value': [old_project_phid],
+            },
+            {
+                'type': 'projects.add',
+                'value': [new_project_phid],
+            }
+            ]
+
+        })
+
     def getTasksWithProject(self, project_phid, continue_=None, statuses=None):
         r = self._getTasksWithProjectContinue(
             project_phid, continue_, statuses=statuses)
@@ -164,6 +179,22 @@ class Client(object):
             for case in self.getTasksWithProject(
                     project_phid, cursor['after'], statuses=statuses):
                 yield case
+
+    def getInactiveTasksWithProject(self, project_phid, inactive_for=864000, statuses=['resolved'], columns=[]):
+        params = {
+            'limit': 100,
+            'constraints': {
+                'projects': [project_phid],
+                'statuses': statuses,
+                "modifiedEnd": int(time.time() - inactive_for),
+                'columnPHIDs': columns,
+            }
+        }
+        r = self.post('maniphest.search', params)
+        for case in r['data']:
+            if case['type'] != 'TASK':
+                continue
+            yield case['phid']
 
     def _getTasksWithProjectContinue(self, project_phid, continue_=None, statuses=None):
         params = {
@@ -196,6 +227,15 @@ class Client(object):
             "constraints": {
                 "phids": [phid],
                 "hasSubtasks": True
+            }
+        }
+        return self.post('maniphest.search', params)[
+            'data']
+
+    def getTaskName(self, keyword):
+        params = {
+            "constraints": {
+                "query": keyword
             }
         }
         return self.post('maniphest.search', params)[
