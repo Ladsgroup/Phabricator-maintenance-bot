@@ -64,6 +64,12 @@ work = [{'from': ['incoming'],
          'project': 'Bengali-Sites',
          'to': 'Done',
          'status': ['Closed']},
+        {'from': ['New Tasks',
+                  'Backlog',
+                  'Prioritized'],
+         'project': 'growthexperiments-mentorship',
+         'to': 'In Progress',
+         'projects': ['growth-team-current-sprint']}
         ]
 for case in work:
     gen = client.getTasksWithProject(client.lookupPhid('#' + case['project']))
