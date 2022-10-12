@@ -87,7 +87,10 @@ class PostCreationHandler(object):
     def _create_ticket(self):
         result = client.createParentTask(
             self.post_ticket_text,
-            ['PHID-PROJ-2fuv7mxzjnpjfuojdnfd'],
+            [
+                'PHID-PROJ-2fuv7mxzjnpjfuojdnfd', # wiki-setup
+                'PHID-PROJ-2b7oz62ylk3jk4aus262', # platform-engineering
+            ],
             self.main_pid,
             'Post-creation work for {}'.format(self.db_name))['object']
         self.post_ticket_phid = result['phid']
