@@ -217,7 +217,7 @@ def hostname_resolves(hostname):
 
 
 def handle_special_wiki_apache(parts):
-    file_path = 'modules/mediawiki/manifests/web/prod_sites.pp'
+    file_path = 'hieradata/common/mediawiki.yaml'
     apache_file = get_file_from_gerrit(
         'operations/puppet/+/production/' + file_path)
     url = '.'.join(parts)
@@ -296,7 +296,7 @@ def handle_apache(special, parts):
         add_text(' [x] Apache config (Not needed)')
         return True
 
-    file_path = 'modules/mediawiki/manifests/web/prod_sites.pp'
+    file_path = 'hieradata/common/mediawiki.yaml'
     apache_url = gerrit_path + \
                  'operations/puppet/+/production/' + file_path
     if not handle_special_wiki_apache(parts):
