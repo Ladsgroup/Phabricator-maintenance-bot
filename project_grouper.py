@@ -120,7 +120,6 @@ rules = [
         # H30
         'add': 'wikidata',
         'in': [
-            'Wikidata-Page-Banner',
             'Wikibase-Quality-Constraints',
             'DataValues',
             'DataValues-JavaScript',
