@@ -270,6 +270,7 @@ rules = [
         'add': 'abstract_wikipedia',
         'in': [
             'abstract_wikipedia_ux',
+            'wikifunctions',
             'wikilambda',
             'function-evaluator',
             'function-orchestrator',
