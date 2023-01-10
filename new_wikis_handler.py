@@ -460,9 +460,10 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
         add_text(sync_file('langlist', summary))
 
     add_text('On mwmaint1002:')
-    add_text('`{search_path} --wiki={dbname} --cluster=all`'.format(
+    add_text('`{search_path} --wiki={dbname} --cluster=all 2>&1 | tee {log}`'.format(
         search_path='mwscript extensions/CirrusSearch/maintenance/UpdateSearchIndexConfig.php',
         dbname=db_name,
+        log='/tmp/{dbname}.UpdateSearchIndexConfig.log'.format(dbname=db_name),
     ))
 
     add_text('On deployment host:')
