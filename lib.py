@@ -11,7 +11,7 @@ class Client(object):
 
     def __init__(self, url, username, key):
         self.url = url
-        self.username = username
+        self.username = username  # Unused
         self.column_cache = {}
         self.phid_cache = {}
         self.session = {
