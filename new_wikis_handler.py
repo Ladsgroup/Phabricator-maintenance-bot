@@ -71,8 +71,8 @@ class PostCreationHandler(object):
             checker()
         self.add_text(' [] Import from Incubator')
         self.add_text(' [] Clean up old interwiki links')
-        self.add_text(' [] For content wikis (not private, fishbowl, special, etc.) [[ https://meta.wikimedia.org/wiki/Stewards%27_noticeboard | Ask the stewards ]] to add the wiki to the [[ https://meta.wikimedia.org/wiki/Bot_policy| Bot policy ]] wikiset')
-        self.add_text(' [] Inform the [[ https://meta.wikimedia.org/wiki/Talk:Countervandalism_Network | CVN ]] project for IRC monitoring')
+        self.add_text(' [] For content wikis: [[ https://meta.wikimedia.org/wiki/Stewards%27_noticeboard | ask the stewards ]] to add the wiki to the global bot policy wikiset')
+        self.add_text(' [] Add the wiki to a CVNBot for SWMT monitoring')
 
         self._create_ticket()
         for handler in self.handlers:
@@ -90,6 +90,7 @@ class PostCreationHandler(object):
             [
                 'PHID-PROJ-2fuv7mxzjnpjfuojdnfd', # wiki-setup
                 'PHID-PROJ-2b7oz62ylk3jk4aus262', # platform-engineering
+                'PHID-PROJ-flkea3bsbxquupwv5g2s', # countervandalism-network
             ],
             self.main_pid,
             'Post-creation work for {}'.format(self.db_name))['object']
