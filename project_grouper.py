@@ -111,12 +111,6 @@ rules = [
         ],
     },
     {
-        'add': 'user-urbanecm-wmf-engineering',
-        'in': [
-            'growth-deployments',
-        ]
-    },
-    {
         # H30
         'add': 'wikidata',
         'in': [
