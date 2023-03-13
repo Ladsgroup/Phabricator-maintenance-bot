@@ -269,6 +269,7 @@ rules = [
             'function-evaluator',
             'function-orchestrator',
             'function-schemata',
+            'tool-ducttape',
         ],
     },
     {
