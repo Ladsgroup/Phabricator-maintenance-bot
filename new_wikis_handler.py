@@ -140,7 +140,7 @@ class PostCreationHandler(object):
     def _check_analytics(self):
         path = get_gerrit_path(
             'analytics/refinery',
-            'static_data/pageview/whitelist/whitelist.tsv'
+            'static_data/pageview/allowlist/allowlist.tsv'
         )
         url = '.'.join(self.parts[:2])
         refinery_whitelist = get_file_from_gerrit(path)
