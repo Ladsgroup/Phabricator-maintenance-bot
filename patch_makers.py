@@ -106,11 +106,11 @@ class AnalyticsPatchMaker(GerritBot):
         self.project = project
         super().__init__(
             'analytics/refinery',
-            'Add {} to pageview whitelist \n\nBug:{}'.format(project, bug_id)
+            'Add {} to pageview allowlist \n\nBug:{}'.format(project, bug_id)
         )
 
     def changes(self):
-        with open('static_data/pageview/whitelist/whitelist.tsv', 'r') as f:
+        with open('static_data/pageview/allowlist/allowlist.tsv', 'r') as f:
             lines = f.read().split('\n')
         projects = []
         non_projects = []
