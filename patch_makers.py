@@ -126,5 +126,5 @@ class AnalyticsPatchMaker(GerritBot):
         ))
         projects = list(set(projects))
         projects.sort()
-        with open('static_data/pageview/whitelist/whitelist.tsv', 'w') as f:
+        with open('static_data/pageview/allowlist/allowlist.tsv', 'w') as f:
             f.write('\n'.join(projects) + '\n' + '\n'.join(non_projects))
