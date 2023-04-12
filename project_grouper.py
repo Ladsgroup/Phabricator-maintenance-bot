@@ -284,7 +284,8 @@ rules = [
     {
         'add': 'growthexperiments-mentorship',
         'in': [
-            'growthexperiments-mentordashboard'
+            'growthexperiments-mentordashboard',
+            'growthexperiments-personalizedpraise'
         ],
     },
 ]
