@@ -165,6 +165,7 @@ rules = [
             'Special:NewLexeme revival',
             'Wikidata Dev Team',
             'Wikidata data quality and trust',
+            'Wikidata-UX',
         ],
         'once': True
     },
