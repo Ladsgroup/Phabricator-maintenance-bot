@@ -6,8 +6,9 @@ from lib import Client
 
 
 class Checker():
-    def __init__(self, gerrit_bot_phid, project_patch_for_review_phid, client):
+    def __init__(self, gerrit_bot_phid, code_review_bot_phid, project_patch_for_review_phid, client):
         self.gerrit_bot_phid = gerrit_bot_phid
+        self.code_review_bot_phid = code_review_bot_phid
         self.project_patch_for_review_phid = project_patch_for_review_phid
         self.client = client
 
@@ -61,7 +62,7 @@ class Checker():
         for transaction in self.client.getTransactions(phid):
             if re.findall(re.escape('https://github.com/') + r'.+?/pull', str(transaction)):
                 return False
-            if transaction['authorPHID'] == self.gerrit_bot_phid:
+            if transaction['authorPHID'] in [self.gerrit_bot_phid, self.code_review_bot_phid]:
                 gerrit_bot_actions.append(transaction)
             else:
                 # If someone other than GerritBot adds the Patch-For-Review project, don't
@@ -106,9 +107,11 @@ if __name__ == "__main__":
     client = Client.newFromCreds()
 
     gerrit_bot_phid = 'PHID-USER-idceizaw6elwiwm5xshb'
+    code_review_bot_phid = 'PHID-USER-ckazlx2gejbyo75y6lid'
     project_patch_for_review_phid = 'PHID-PROJ-onnxucoedheq3jevknyr'
     checker = Checker(
         gerrit_bot_phid,
+        code_review_bot_phid,
         project_patch_for_review_phid,
         client)
     gen = client.getTasksWithProject(project_patch_for_review_phid)
