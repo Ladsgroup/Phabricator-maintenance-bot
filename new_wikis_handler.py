@@ -421,10 +421,6 @@ def get_db_name(wiki_spec, parts):
     return db_name
 
 
-def sync_file(path, summary):
-    return '`scap sync-file {} "{}"`'.format(path, summary)
-
-
 def add_create_instructions(parts, shard, language_code, db_name, task_tid):
     add_text('\n-------')
     add_text('**Step by step commands**:')
@@ -445,20 +441,10 @@ def add_create_instructions(parts, shard, language_code, db_name, task_tid):
             family=parts[1],
             db=db_name,
             url='.'.join(parts)))
-    summary = 'Creating {db_name} ({phab})'.format(
-        db_name=db_name, phab=task_tid)
+
     add_text('On deployment host:')
-    if shard != "s3":
-        add_text(sync_file('wmf-config/db-production.php', summary))
-    add_text(sync_file('dblists', summary))
-    add_text('`scap sync-wikiversions "{}"`'.format(summary))
-    if parts[1] == 'wikimedia':
-        add_text(sync_file('multiversion/MWMultiVersion.php', summary))
-    add_text(sync_file('static/images/project-logos/', summary))
-    add_text(sync_file('wmf-config/logos.php', summary))
-    add_text(sync_file('wmf-config/InitialiseSettings.php', summary))
-    if parts[1] != 'wikimedia':
-        add_text(sync_file('langlist', summary))
+    add_text('`scap sync-world "Creating {db_name} ({phab})"`'.format(
+        db_name=db_name, phab=task_tid))
 
     add_text('On mwmaint1002:')
     add_text('`{search_path} --wiki={dbname} --cluster=all 2>&1 | tee {log}`'.format(
