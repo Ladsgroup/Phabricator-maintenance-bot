@@ -61,25 +61,28 @@ rules = [
         'add': 'Social-Tools',
         'in': [
             'BlogPage',
+            'Challenge',
             'Comments',
             'FanBoxes',
+            'ImageRating',
             'LinkFilter',
+            'MiniInvite',
+            'NewSignupPage',
+            # 'NewUsersList', archived project
+            'PictureGame',
             'PollNY',
             'QuizGame',
             # 'RandomFeaturedUser', archived project
             'RandomGameUnit',
+            # 'RandomUsersWithAvatars', archived project
             'SocialProfile',
             'SiteMetrics',
+            'SportsTeams',
+            # 'TopLists', archived project
+            'video_non-wmf',
             'VoteNY',
             'WikiForum',
             'WikiTextLoggedInOut',
-            'Challenge',
-            'MiniInvite',
-            # 'NewUsersList', archived project
-            'PictureGame',
-            # 'RandomUsersWithAvatars', archived project
-            'video_non-wmf',
-            # 'TopLists', archived project
         ],
     },
     {
