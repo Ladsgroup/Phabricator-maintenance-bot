@@ -169,6 +169,7 @@ rules = [
             'Wikidata Dev Team',
             'Wikidata data quality and trust',
             'Wikidata-UX',
+            'Wikidata Integration in Wikimedia projects',
         ],
         'once': True
     },
