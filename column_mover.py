@@ -69,7 +69,22 @@ work = [{'from': ['incoming'],
                   'Prioritized'],
          'project': 'growthexperiments-mentorship',
          'to': 'In Progress',
-         'projects': ['growth-team-current-sprint']}
+         'projects': ['growth-team-current-sprint']},
+        {'from': ['Incoming',
+                  'Radar',
+                  'Other Projects',
+                  '[DOT] By Project',
+                  '[DOT] Prioritized',
+                  '[DOT] Epics + Stalled'
+                  '[QT] By Project',
+                  '[QT] Prioritized',
+                  '[QT] Epics + Stalled'],
+         'project': 'wmde-wikidata-tech',
+         'to': 'Ongoing',
+         'projects': [
+             'wikidata_dev_team_wikidata.org',
+             'wikidata_dev_team_quality_tools',
+             'wikidata_dev_team_sprint']}
         ]
 for case in work:
     gen = client.getTasksWithProject(client.lookupPhid('#' + case['project']))
